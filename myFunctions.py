@@ -39,6 +39,27 @@ languages = detectlanguage.languages() # get available languages from detectlang
 
 languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
 
+def usage(exitCode):
+    print "\nUsage:"
+    print "----------------------------------------"
+    print "%s" % sys.argv[0]
+    print "     Search current path for files with srt suffix, set language code if none, and create symbolic link to them without language code"
+    print "   OR"
+    print "%s -p <path> -s <suffix>" % sys.argv[0]
+    print "     Search the 'p'ath <path> for files with <suffix> 's'uffix, set language code if none, and create symbolic link to them without language code"
+    print "   OR"
+    print "%s -r <path> -s <suffix>" % sys.argv[0]
+    print "     Search <path> 'r'ecursively for files with 's'uffix <suffix>, set language code if none, and create symbolic link to them without language code"
+    print "   OR"
+    print "%s -d" % sys.argv[0]
+    print "     Get available languages from 'd'etectlanguage.com, and your account status at the same place"
+    print "%s -g" % sys.argv[0]
+    print "   OR"
+    print "     Search current path for video files, check if there are any srt subtitle files with language code in the name"
+    print "     If not try to find and 'g'et subtitles in any of your preferred languages"
+    print "\n"
+    sys.exit(exitCode)
+
 ##### mainly for downloadSubs #####
 dbmCacheFile = "%s/%s/cachefile.dbm" % (os.path.expanduser("~"), config.get('video','dbmCacheFile')) # get location for dbm cache file
 
@@ -146,7 +167,7 @@ def checkLang(file): # checks file for language and returns language code, or if
     finished = False
     if status['status'] == "SUSPENDED":
         print "*** Account at detectlanguage.com is suspended"
-        print "    Run detectlanguage.com_status.py to see status"
+        print "    Run %s -d to see status" % sys.argv[0]
         print "    Quitting...\n"
         exit(7)
     with codecs.open(file, encoding='utf8') as myfile:
