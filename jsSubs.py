@@ -27,22 +27,19 @@ except getopt.GetoptError as e:
     print "\n%s" % (str(e))
     usage(2) # print usage and exit with code
 
-for o, a in myopts:
-    if o in ('-p', '--path'):
-        searchPath = a
+for option, argument in myopts:
+    if option in ('-p', '--path'):
+        searchPath = argument
         programPart = "scan"
-    elif o in ('-r', '--recursive'):
-        searchPathRecursive = a
+    elif option in ('-r', '--recursive'):
+        searchPathRecursive = argument
         programPart = "scan"
-    elif o in ('-s', '--suffix'):
-        suffix = a
-    elif o in ('-d', '--detectlang'):
+    elif option in ('-s', '--suffix'):
+        suffix = argument
+    elif option in ('-d', '--detectlang'):
         programPart = "status"
-    elif o in ('-g', '--get'):
+    elif option in ('-g', '--get'):
         programPart = "get"
-    else:
-        print "\nError: Wrong set of arguments passed"
-        usage(6)
 
 if len(sys.argv) == 1: # no arguments passed
     print "\nNo path given."
