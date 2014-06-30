@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# Encoding: UTF-8
 
 # edit .conf to suit your needs
 
@@ -36,49 +37,54 @@ for o, a in myopts:
     elif o == '-s':
         suffix = a
 
-# check that a path is given
-if not searchPathRecursive and not searchPath:
-    print "\nError: No search path given!"
-    print '\nUsage:'
-    print '%s -p <path> -s <suffix>' % sys.argv[0]
-    print 'OR'
-    print '%s -r <path> -s <suffix>' % sys.argv[0]
-    sys.exit(3)
+if len(sys.argv) > 1:
+    # check that a path is given
+    if not searchPathRecursive and not searchPath:
+        print "\nError: No search path given!"
+        print '\nUsage:'
+        print '%s -p <path> -s <suffix>' % sys.argv[0]
+        print 'OR'
+        print '%s -r <path> -s <suffix>' % sys.argv[0]
+        sys.exit(3)
 
-# check that only one path is given
-if searchPathRecursive and searchPath:
-    print "\nError: You can't state both path and recursive path!"
-    print '\nUsage:'
-    print '%s -p <path> -s <suffix>' % sys.argv[0] 
-    print 'OR'
-    print '%s -r <path> -s <suffix>' % sys.argv[0]
-    sys.exit(4)
+    # check that only one path is given
+    if searchPathRecursive and searchPath:
+        print "\nError: You can't state both path and recursive path!"
+        print '\nUsage:'
+        print '%s -p <path> -s <suffix>' % sys.argv[0] 
+        print 'OR'
+        print '%s -r <path> -s <suffix>' % sys.argv[0]
+        sys.exit(4)
 
-# check if suffix is given
-if not suffix:
-    print "\nError: No suffix given!"
-    print '\nUsage:'
-    print '%s -p <path> -s <suffix>' % sys.argv[0] 
-    print 'OR'
-    print '%s -r <path> -s <suffix>'
-    sys.exit(5)
+    # check if suffix is given
+    if not suffix:
+        print "\nError: No suffix given!"
+        print '\nUsage:'
+        print '%s -p <path> -s <suffix>' % sys.argv[0] 
+        print 'OR'
+        print '%s -r <path> -s <suffix>'
+        sys.exit(5)
 
-# check that path exist
-if searchPathRecursive:
-    if not os.path.isdir(searchPathRecursive):
-        print "\nError: %s is not a valid path!" % searchPathRecursive
-        sys.exit(6)
+    # check that path exist
+    if searchPathRecursive:
+        if not os.path.isdir(searchPathRecursive):
+            print "\nError: %s is not a valid path!" % searchPathRecursive
+            sys.exit(6)
+        else:
+            searchPath = searchPathRecursive
+            recursive = " recursively"
     else:
-        searchPath = searchPathRecursive
-        recursive = " recursively"
+        if not os.path.isdir(searchPath):
+            print "\nError: %s is not a valid path!" % searchPath
+            sys.exit(6)
+        else:
+            recursive = ""
+            suffix = ".%s" % suffix
+
 else:
-    if not os.path.isdir(searchPath):
-        print "\nError: %s is not a valid path!" % searchPath
-        sys.exit(6)
-    else:
-        recursive = ""
-
-suffix = ".%s" % suffix
+    recursive = ""
+    searchPath = "%s/" % os.getcwd()
+    suffix = ".srt"
 
 print "\nSearching %s%s for files ending with %s" % (searchPath, recursive, suffix)
 
