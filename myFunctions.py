@@ -42,21 +42,23 @@ languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
 def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
-    print "%s" % sys.argv[0]
-    print "     Search current path for files with srt suffix, set language code if none, and create symbolic link to them without language code"
-    print "   OR"
-    print "%s -p <path> -s <suffix>" % sys.argv[0]
-    print "     Search the 'p'ath <path> for files with <suffix> 's'uffix, set language code if none, and create symbolic link to them without language code"
-    print "   OR"
-    print "%s -r <path> -s <suffix>" % sys.argv[0]
-    print "     Search <path> 'r'ecursively for files with 's'uffix <suffix>, set language code if none, and create symbolic link to them without language code"
-    print "   OR"
+    print "%s -l [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
+    print "          Find files, set language code if none, and create symbolic 'l'ink to them without language code"
+    print "          Options: Set -s <suffix> to set suffix to search for"
+    print "              Set -r to search 'r'ecursively"
+    print "              Set -p <path> to set other path than current"
+    print "     OR"
     print "%s -d" % sys.argv[0]
-    print "     Get available languages from 'd'etectlanguage.com, and your account status at the same place"
-    print "%s -g" % sys.argv[0]
-    print "   OR"
-    print "     Search current path for video files, check if there are any srt subtitle files with language code in the name"
-    print "     If not try to find and 'g'et subtitles in any of your preferred languages"
+    print "          Get available languages from 'd'etectlanguage.com, and your account status at the same place"
+    print "     OR"
+    print "%s -g [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
+    print "          Search video files, check if there are any srt subtitle files with language code in the name"
+    print "          If not try to find and 'g'et subtitles in any of your preferred languages"
+    print "          Options: Set -r to search 'r'ecursively"
+    print "                   Set -p <path> to set other path than current"
+    print "     OR"
+    print "%s -h" % sys.argv[0]
+    print "          Prints this"
     print "\n"
     sys.exit(exitCode)
 

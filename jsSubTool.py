@@ -21,77 +21,76 @@ from myFunctions import *
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'p:r:s:dg', ['path=', 'recursive=', 'suffix=', 'detectlang', 'get'])
+    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgh', ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'help'])
 
 except getopt.GetoptError as e:
     print "\n%s" % (str(e))
     usage(2) # print usage and exit with code
 
+recursive = False
+suffix = ".srt"
+programPart = ""
+searchPath = "%s" % os.getcwd()
+
+if len(sys.argv) == 1: # no optionss passed
+    print "\nError: No options given"
+    usage(1)
+
 for option, argument in myopts:
     if option in ('-p', '--path'):
-        searchPath = argument
-        programPart = "scan"
+        searchPath = "%s/%s" % (os.getcwd(), argument)
     elif option in ('-r', '--recursive'):
-        searchPathRecursive = argument
-        programPart = "scan"
+        recursive = True
     elif option in ('-s', '--suffix'):
         suffix = argument
+    elif option in ('-l', '--link'):
+        programPart = "link"
     elif option in ('-d', '--detectlang'):
         programPart = "status"
     elif option in ('-g', '--get'):
         programPart = "get"
+    elif option in ('-h', '--help'):
+        usage(0)
 
 if len(sys.argv) == 1: # no arguments passed
     print "\nNo path given."
-    print "Using current dir"
-    recursive = ""
+    print "Linking current dir"
     searchPath = "%s/" % os.getcwd() # current dir                                                                                                                              
-    suffix = ".srt"
-    programPart = "scan"
+    programPart = "link"
 
-elif programPart == "scan": # argument -r or -p passed
-    if not searchPathRecursive and not searchPath: # check that a path is given
-        print "\nError: No search path given!"
-        usage(3) # print usage and exit with code
-    if searchPathRecursive and searchPath: # check that only one path is given
-        print "\nError: You can't state both path and recursive path!"
-        usage(4) # print usage and exit with code
-    if searchPathRecursive: # -r recursive path given
-        if not os.path.isdir(searchPathRecursive): # not a valid path
-            print "\nError: %s is not a valid path!" % searchPathRecursive
-            sys.exit(6)
-        else:
-            searchPath = searchPathRecursive
-            recursive = " recursively"
-    elif searchPath: # -p path given
-        if not os.path.isdir(searchPath): # not a valid path
-            print "\nError: %s is not a valid path!" % searchPath
-            sys.exit(6)
-        else:
-            recursive = ""
+if not programPart:
+    print "\nError: No program part chosen"
+    usage(1)
 
-    if not suffix: # suffix not given
-        print "\nNo suffix given!"
-        print "Setting srt"
-        suffix = ".srt"
-    else:
-        suffix = ".%s" % suffix.lstrip('.') # remove leading . if any
+if searchPath: # argument -p --path passed
+    if not os.path.isdir(searchPath): # not a valid path
+        print "\nError: %s is not a valid path!" % searchPath
+        sys.exit(6)
+else:
+    print "\nNo path given."
+    print "Using current dir"
 
-########################################## scan ##########################################
-if programPart == "scan":
-    print "\nSearching %s%s for files ending with %s" % (searchPath, recursive, suffix)
-    
-    # scan directories recursively
-    if searchPathRecursive:
+if suffix: # argument -s --suffix passed
+    suffix = ".%s" % suffix.lstrip('.') # remove leading . if any
+else:
+    print "\nNo suffix given!"
+    print "Setting %s" % suffix.lstrip('.') # remove leading . if any
+
+########################################## link ##########################################
+if programPart == "link":
+
+    if recursive: # scan directories recursively
+        print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
         for root, dirs, files in os.walk(searchPath):
             for file in files:
                 if isFile(os.path.join(root, file), suffix):
                     langSums = fileFound(os.path.join(root, file), langSums)
                     num += 1
 
-    # scan single directory
-    if searchPath:
+    else: # scan single directory
+        print "\nSearching %s for files ending with %s" % (searchPath, suffix)
         for file in os.listdir(searchPath):
+            print file
             if isFile(file, suffix):
                 langSums = fileFound(file, langSums)
                 num += 1
