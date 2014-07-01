@@ -122,23 +122,31 @@ def partGet(searchPath):
     subDownloads = []
     num = 0
 
-    if not searchPath:
-        print "\nNo path given."
-        print "Using current dir"
-        searchPath = "%s/" % os.getcwd() # current dir
-
-    print "\nSearching %s for video files" % searchPath
-
-    for file in os.listdir(searchPath):
-        videoFound = False
-        for suffix in videoSuffixes:
-            if isVideo(file, suffix):
-                print "\n%s" % file
-                num += 1
-                videoFound = True
-                break
-        if videoFound:
-            subDownloads = hasSub(file, searchPath)
+    if recursive: # scan directories recursively
+        print "\nSearching %s recursively for video files" % searchPath
+        for root, dirs, files in os.walk(searchPath):
+            for file in files:
+                videoFound = False
+                for suffix in videoSuffixes:
+                    if isVideo(os.path.join(root, file), suffix):
+                        print "\n%s" % file
+                        num += 1
+                        videoFound = True
+                        break
+                if videoFound:
+                    subDownloads = hasSub(file, searchPath)
+    else:
+        print "\nSearching %s for video files" % searchPath
+        for file in os.listdir(searchPath):
+            videoFound = False
+            for suffix in videoSuffixes:
+                if isVideo(file, suffix):
+                    print "\n%s" % file
+                    num += 1
+                    videoFound = True
+                    break
+            if videoFound:
+                subDownloads = hasSub(file, searchPath)
 
     print "\nNumber of video files in %s: %d\n" % (searchPath, num)
 
