@@ -13,7 +13,6 @@
 import getopt
 
 from myFunctions import *
-from programParts import *
 
 ##### set config file #####
 #config = configparser.ConfigParser()
@@ -29,30 +28,31 @@ except getopt.GetoptError as e:
 
 recursive = False
 suffix = ".srt"
-programPart = ""
 searchPath = "%s" % os.getcwd()
+doLink = False
+doStatus = False
+doGet = False
 
 if len(sys.argv) == 1: # no options passed
     onError(2, 2)
 
 for option, argument in myopts:
     if option in ('-p', '--path'):
-        #searchPath = "%s/%s" % (os.getcwd(), argument)
         searchPath = argument
     elif option in ('-r', '--recursive'):
         recursive = True
     elif option in ('-s', '--suffix'):
         suffix = argument
     elif option in ('-l', '--link'):
-        programPart = "link"
+        doLink = True
     elif option in ('-d', '--detectlang'):
-        programPart = "status"
+        doStatus = True
     elif option in ('-g', '--get'):
-        programPart = "get"
+        doGet = True
     elif option in ('-h', '--help'):
         usage(0)
 
-if not programPart:
+if not doLink and not doStatus and not doGet: # no program part selected
     onError(3, 3)
 
 if searchPath: # argument -p --path passed
@@ -159,16 +159,16 @@ def partGet(searchPath):
 
     print "\n"
 
-if programPart == "link" and not programPart == "status" and not programPart == "get":
+if doLink and not doStatus and not doGet:
     partLink(recursive, searchPath, suffix)
 
-elif programPart == "status" and not programPart == "link" and not programPart == "get":
+elif doStatus and not doLink and not doGet:
     partStatus()
 
-elif programPart == "get" and not programPart == "link" and not programPart == "status":
+elif doGet and not doLink and not doStatus:
     partGet(searchPath)
 
-elif programPart == "link" and programPart == "get":
+elif doLink and doGet and not doStatus:
     partGet(searchPath)
     partLink(recursive, searchPath, suffix)
 

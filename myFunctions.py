@@ -194,7 +194,7 @@ def checkLang(file): # checks file for language and returns language code, or if
         print "    Run %s -d to see status" % sys.argv[0]
         print "    Quitting...\n"
         exit(7)
-    with codecs.open(file, encoding='utf8') as myfile:
+    with open(file) as myfile:
         fileLines = sum(1 for line in myfile) # number of lines in file
     myfile.close() # close file
     while True:
