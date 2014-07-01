@@ -17,7 +17,7 @@ from datetime import timedelta
 import subliminal
 
 # starting up some variables
-num = 0
+#num = 0
 searchPath = ""
 searchPathRecursive = ""
 suffix = ""
@@ -54,7 +54,7 @@ def onError(errorCode, extra):
         print "%s is not a valid path\n" % extra
         sys.exit(4)
     elif errorCode == 5:
-        print "\nError: "
+        print "Wrong set of options given"
         usage(errorCode)
     elif errorCode == 6:
         usage(errorCode)
@@ -219,12 +219,11 @@ def checkLang(file): # checks file for language and returns language code, or if
                 if lang == langCode: # recieved language is one of the prefered languages
                     finished = True # search for language code is finished
                     break # break out of this for loop
-                else:
-                    print "*** Not one of the prefered languages"
 
             if finished:
                 break # break out of the while loop
-
+            else:
+                print "*** Not one of your prefered languages"
         else:
             langCode = "xx"
             print "*** Got unreliable answer. Confidence is %s" % str(result[0]['confidence'])

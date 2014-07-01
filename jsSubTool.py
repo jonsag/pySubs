@@ -13,6 +13,7 @@
 import getopt
 
 from myFunctions import *
+from programParts import *
 
 ##### set config file #####
 #config = configparser.ConfigParser()
@@ -36,7 +37,8 @@ if len(sys.argv) == 1: # no options passed
 
 for option, argument in myopts:
     if option in ('-p', '--path'):
-        searchPath = "%s/%s" % (os.getcwd(), argument)
+        #searchPath = "%s/%s" % (os.getcwd(), argument)
+        searchPath = argument
     elif option in ('-r', '--recursive'):
         recursive = True
     elif option in ('-s', '--suffix'):
@@ -67,7 +69,9 @@ else:
     print "Setting %s" % suffix.lstrip('.') # remove leading . if any
 
 ########################################## link ##########################################
-if programPart == "link":
+def partLink(recursive, searchPath, suffix):
+    langSums = []
+    num = 0
 
     if recursive: # scan directories recursively
         print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
@@ -80,7 +84,7 @@ if programPart == "link":
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
         for file in os.listdir(searchPath):
-            if isFile(file, suffix):
+            if isFile(os.path.join(searchPath, file), suffix):
                 langSums = fileFound(os.path.join(searchPath, file), langSums)
                 num += 1
 
@@ -94,7 +98,7 @@ if programPart == "link":
     print "\n"
 
 ########################################## status ##########################################
-elif programPart == "status":
+def partStatus():
     print "\nAvailable languages:"
     print "-------------------------------------------------------------------------------------"
     for language in languages:
@@ -114,7 +118,10 @@ elif programPart == "status":
     print 'Bytes: %d / %d' % (status['bytes'], status['daily_bytes_limit'])
     
 ########################################## get ##########################################
-elif programPart == "get":
+def partGet(searchPath):
+    subDownloads = []
+    num = 0
+
     if not searchPath:
         print "\nNo path given."
         print "Using current dir"
@@ -151,3 +158,19 @@ elif programPart == "get":
         print "%s - %s:  %d" % (lang, langName(lang).lower(), sub)
 
     print "\n"
+
+if programPart == "link" and not programPart == "status" and not programPart == "get":
+    partLink(recursive, searchPath, suffix)
+
+elif programPart == "status" and not programPart == "link" and not programPart == "get":
+    partStatus()
+
+elif programPart == "get" and not programPart == "link" and not programPart == "status":
+    partGet(searchPath)
+
+elif programPart == "link" and programPart == "get":
+    partGet(searchPath)
+    partLink(recursive, searchPath, suffix)
+
+else:
+    onError(5, 5)
