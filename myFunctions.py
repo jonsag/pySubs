@@ -39,6 +39,28 @@ languages = detectlanguage.languages() # get available languages from detectlang
 
 languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
 
+def onError(errorCode, extra):
+    print "\nError:"
+    if errorCode == 1:
+        print getoptError
+        usage(errorCode)
+    elif errorCode == 2:
+        print "No options given"
+        usage(errorCode)
+    elif errorCode == 3:
+        print "No program part chosen"
+        usage(errorCode)
+    elif errorCode == 4:
+        print "%s is not a valid path\n" % extra
+        sys.exit(4)
+    elif errorCode == 5:
+        print "\nError: "
+        usage(errorCode)
+    elif errorCode == 6:
+        usage(errorCode)
+    else:
+        print "\nError: Unknown"
+
 def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
@@ -273,7 +295,7 @@ def isVideo(file, suffix):
         result = True
     return result
 
-def hasSub(file):
+def hasSub(file, path):
     subName = os.path.splitext(file)[0]
     for lang in prefLangs:
         subNameLang = "%s.%s.%s" % (subName, lang, "srt")
@@ -282,16 +304,19 @@ def hasSub(file):
             subDownloads = foundLang("%s - present" % lang)
         else:
             print "*** Has no %s subtitles" % langName(lang).lower()
-            subDownloads = downloadSub(file, lang)
+            subDownloads = downloadSub(file, lang, path)
     return subDownloads
 
-def downloadSub(file, lang):
+def downloadSub(file, lang, path):
     print "--- Trying to download..."
-    
-    if call(["subliminal", "-q", "-l", lang, "--", file]):
+    origWD = os.getcwd() # current working directory
+    os.chdir(path) # change working directory to where the videos are
+    if call(["subliminal", "-q", "-l", lang, "--", file]): # try to download the subtitles
         print "*** Could not find %s subtitles" % langName(lang).lower()
         subDownloads = foundLang("%s - not found" % lang)
     else:
         print "--- Downloaded %s subtitles" % langName(lang).lower()
         subDownloads = foundLang(lang) # sending language code to be added
+        subName = "%s.%s.%s" % (os.path.splitext(file)[0], lang, "srt")
+    os.chdir(origWD) # change working directory back
     return subDownloads
