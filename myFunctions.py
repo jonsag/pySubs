@@ -296,14 +296,21 @@ def isVideo(file, suffix):
 
 def hasSub(file, path):
     subName = os.path.splitext(file)[0]
-    for lang in prefLangs:
-        subNameLang = "%s.%s.%s" % (subName, lang, "srt")
-        if os.path.isfile(subNameLang):
-            print "--- Already has %s subtitles" % langName(lang).lower()
-            subDownloads = foundLang("%s - present" % lang)
-        else:
-            print "*** Has no %s subtitles" % langName(lang).lower()
-            subDownloads = downloadSub(file, lang, path)
+    origWD = os.getcwd() # current working directory
+    os.chdir(path) # change working directory to where the videos are
+    if os.path.isfile(file):
+        for lang in prefLangs:
+            subNameLang = "%s.%s.%s" % (subName, lang, "srt")
+            if os.path.isfile(subNameLang):
+                print "--- Already has %s subtitles" % langName(lang).lower()
+                subDownloads = foundLang("%s - present" % lang)
+            else:
+                print "*** Has no %s subtitles" % langName(lang).lower()
+                subDownloads = downloadSub(file, lang, path)
+    else:
+        print "*** Could no find %s" % file
+        subDownloads = foundLang("error")
+    os.chdir(origWD) # change working directory back
     return subDownloads
 
 def downloadSub(file, lang, path):

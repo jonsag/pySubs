@@ -28,7 +28,7 @@ except getopt.GetoptError as e:
 
 recursive = False
 suffix = ".srt"
-searchPath = "%s" % os.getcwd()
+searchPath = os.path.abspath(os.getcwd())
 doLink = False
 doStatus = False
 doGet = False
@@ -38,7 +38,7 @@ if len(sys.argv) == 1: # no options passed
 
 for option, argument in myopts:
     if option in ('-p', '--path'):
-        searchPath = argument
+        searchPath = os.path.abspath(argument)
     elif option in ('-r', '--recursive'):
         recursive = True
     elif option in ('-s', '--suffix'):
@@ -128,13 +128,13 @@ def partGet(searchPath):
             for file in files:
                 videoFound = False
                 for suffix in videoSuffixes:
-                    if isVideo(os.path.join(root, file), suffix):
+                    if isVideo(os.path.join(str(root), file), suffix):
                         print "\n%s" % file
                         num += 1
                         videoFound = True
                         break
                 if videoFound:
-                    subDownloads = hasSub(file, searchPath)
+                    subDownloads = hasSub(os.path.join(str(root), file), searchPath)
     else:
         print "\nSearching %s for video files" % searchPath
         for file in os.listdir(searchPath):
