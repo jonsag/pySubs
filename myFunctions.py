@@ -114,12 +114,12 @@ def hasLangCode(file): # returns the language code present, if there is one. Oth
             result = code # set detected language code to result
     return result # return detected language code
 
-def fileFound(file, langSums): # runs on every file that matches suffix, is not a link and is not empty
+def fileFound(file, langSums, verbose): # runs on every file that matches suffix, is not a link and is not empty
     acceptUnreliable = config.get('variables','acceptUnreliable') # True if we accept unreliable as language code
     codePresent = hasLangCode(file) # check if the file already has a language code. Returns code if there is one, otherwise "none"
 
     if codePresent == "none": # file name has no language code
-        checkCode = checkLang(file) # determine what language file has. Returns language code
+        checkCode = checkLang(file, verbose) # determine what language file has. Returns language code
         if acceptUnreliable: # we accept "unreliable" as language code
             addLangCode(file, checkCode) # add language code to file name
             langSums = foundLang(checkCode) # sending language code to be added if code was not present and we accept "xx" as language code
@@ -140,7 +140,7 @@ def fileFound(file, langSums): # runs on every file that matches suffix, is not 
                 makeLink(file) # create a link to the file
 
         elif codePresent == "xx": # language code is "xx"
-            checkCode = checkLang(file) # determine what language file has at detectlanguage.com. Returns language code
+            checkCode = checkLang(file, verbose) # determine what language file has at detectlanguage.com. Returns language code
 
             if acceptUnreliable: # we accept "xx" as language code
                 if checkCode == codePresent['code']: # correct language code already set
@@ -190,7 +190,7 @@ def addLangCode(file, langCode): # adds language code to file name
         os.rename(file, newName) # rename the file
         makeLink(newName) # make link to file
 
-def checkLang(file): # checks file for language and returns language code, or if is doubtful returns "xx"
+def checkLang(file, verbose): # checks file for language and returns language code, or if is doubtful returns "xx"
     status = detectlanguage.user_status() # get status for the account at detectlanguage.com
     tryNumber = 0 # starting up counter
     finished = False
@@ -212,6 +212,9 @@ def checkLang(file): # checks file for language and returns language code, or if
         myFile.close() # close file
 
         text = convertText(head) # convert all strange characters, remove special characters and so on
+
+        if verbose:
+            print text
 
         print "--- Sending rows %d-%d to detectlanguage.com" % (tryNumber * detectRows, (tryNumber + 1) * detectRows)
         result = detectlanguage.detect(text) # detect language
@@ -279,18 +282,25 @@ def foundLang(langCode): # add language code to langSums
     return langSums
 
 def convertText(head):
-        text1 = str(head) # make string of array
-        text2 = text1.split("\\r\\n', '")
-        text3 = []
-        text4 = []
+        texta = str(head) # make string of array
+        textb = texta.split("\\r\\n")
+        
+        textc = []
+        textd = []
         text = ""
-        for line in text2:
-            if line != "\\r\\n']" and line != "['1" and not re.match("^[0-9:\-.> ]*$", line):
-                    text3.append(line)
-        for line in text3:
-            text4.append(line.replace('\\xc3\\xa5','å').replace('\\xc3\\xa4','ä').replace('\\xc3\\xb6','ö').replace('\\xc3\\x85', 'Å').replace('\\xc3\\x84', 'Ä').replace('\\xc3\\x96', 'Ö').rstrip('\-').lstrip('\-'))
-        for line in text4:
+        for line in textb:
+            if not line == "\\r\\n']" and not line == "['1" and not line == '"]' and not re.match("^[0-9:',.>'\- \]]*$", line):# re.match("^[0-9:\-.>\' ]*$", line):
+                #print line
+                textc.append(line)
+
+        for line in textc:
+            textd.append(line.replace('\\xc3\\xa5','å').replace('\\xc3\\xa4','ä').replace('\\xc3\\xb6','ö').replace('\\xc3\\x85', 'Å').replace('\\xc3\\x84', 'Ä').replace('\\xc3\\x96', 'Ö').rstrip('\-').lstrip('\-').lstrip("', '").lstrip("- ").lstrip('"- ').lstrip(", '").lstrip('"- '))
+            #textd.append(line.replace('\\xc3\\xa5','å').replace('\\xc3\\xa4','ä').replace('\\xc3\\xb6','ö').replace('\\xc3\\x85', 'Å').replace('\\xc3\\x84', 'Ä').replace('\\xc3\\\x96', 'Ö').rstrip('\-').lstrip('\-').lstrip("'").lstrip(",").lstrip('"'))
+        for line in textd:
+            #print line
             text = "%s %s" % (text, line)
+
+
         return text
 
 def isVideo(file, suffix):

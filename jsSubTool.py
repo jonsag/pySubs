@@ -85,7 +85,7 @@ def partLink(recursive, searchPath, suffix):
             for file in files:
                 if isFile(os.path.join(root, file), suffix): # check if file matches criteria
                     print "\n%s" % file
-                    langSums = fileFound(os.path.join(root, file), langSums) # go ahead with the file
+                    langSums = fileFound(os.path.join(root, file), langSums, verbose) # go ahead with the file
                     num += 1
 
     else: # scan single directory
@@ -93,7 +93,7 @@ def partLink(recursive, searchPath, suffix):
         for file in os.listdir(searchPath):
             if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
                 print "\n%s" % file
-                langSums = fileFound(os.path.join(searchPath, file), langSums) # go ahead with the file
+                langSums = fileFound(os.path.join(searchPath, file), langSums, verbose) # go ahead with the file
                 num += 1
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, num)
@@ -190,10 +190,16 @@ def partCheck(recursive, searchPath, suffix):
                     langCode = hasLangCode(os.path.join(searchPath, file))
                     if langCode != "none":
                         print "--- Has language code %s - %s" % (langCode['code'], langCode['name'].lower())
+                        checkedCode = checkLang(os.path.join(root, file), verbose)
                         num += 1
                     else:
                         print "*** Has no language code"
                         num += 1
+
+                    if checkedCode == langCode:
+                        print "--- Set and checked language code matches"
+                    else:
+                        print "*** Set and checked code differs"
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
@@ -203,9 +209,15 @@ def partCheck(recursive, searchPath, suffix):
                 langCode = hasLangCode(os.path.join(searchPath, file))
                 if langCode != "none":
                     print "--- Has language code %s - %s" % (langCode['code'], langCode['name'].lower())
+                    checkedCode = checkLang(file, verbose) 
                     num += 1
                 else:
                     print "*** Has no language code"
+
+                if checkedCode == langCode:
+                    print "--- Set and checked language code matches"
+                else:
+                    print "*** Set and checked code differs"
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, num)
 
