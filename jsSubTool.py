@@ -21,7 +21,7 @@ from myFunctions import *
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgh', ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'help'])
+    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgchv', ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check', 'help', 'verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -32,6 +32,8 @@ searchPath = os.path.abspath(os.getcwd())
 doLink = False
 doStatus = False
 doGet = False
+doCheck = False
+verbose = False
 
 if len(sys.argv) == 1: # no options passed
     onError(2, 2)
@@ -51,8 +53,12 @@ for option, argument in myopts:
         doGet = True
     elif option in ('-h', '--help'):
         usage(0)
+    elif option in ('-c', '--check'):
+        doCheck = True
+    elif option in ('-v', '--verbose'):
+        verbose = True
 
-if not doLink and not doStatus and not doGet: # no program part selected
+if not doLink and not doStatus and not doGet and not doCheck: # no program part selected
     onError(3, 3)
 
 if searchPath: # argument -p --path passed
@@ -60,7 +66,7 @@ if searchPath: # argument -p --path passed
         onError(4, searchPath)
 else:
     print "\nNo path given."
-    print "Using current dir"
+    print "Using current dir %s" % searchPath
 
 if suffix: # argument -s --suffix passed
     suffix = ".%s" % suffix.lstrip('.') # remove leading . if any
@@ -77,15 +83,17 @@ def partLink(recursive, searchPath, suffix):
         print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
         for root, dirs, files in os.walk(searchPath):
             for file in files:
-                if isFile(os.path.join(root, file), suffix):
-                    langSums = fileFound(os.path.join(root, file), langSums)
+                if isFile(os.path.join(root, file), suffix): # check if file matches criteria
+                    print "\n%s" % file
+                    langSums = fileFound(os.path.join(root, file), langSums) # go ahead with the file
                     num += 1
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
         for file in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, file), suffix):
-                langSums = fileFound(os.path.join(searchPath, file), langSums)
+            if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
+                print "\n%s" % file
+                langSums = fileFound(os.path.join(searchPath, file), langSums) # go ahead with the file
                 num += 1
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, num)
@@ -128,25 +136,25 @@ def partGet(searchPath):
             for file in files:
                 videoFound = False
                 for suffix in videoSuffixes:
-                    if isVideo(os.path.join(str(root), file), suffix):
+                    if isVideo(os.path.join(str(root), file), suffix): # check if file matches any of the video suffixes
                         print "\n%s" % file
                         num += 1
                         videoFound = True
                         break
                 if videoFound:
-                    subDownloads = hasSub(os.path.join(str(root), file), searchPath)
+                    subDownloads = hasSub(os.path.join(str(root), file), searchPath) # go ahead processing the video file
     else:
         print "\nSearching %s for video files" % searchPath
         for file in os.listdir(searchPath):
             videoFound = False
             for suffix in videoSuffixes:
-                if isVideo(file, suffix):
+                if isVideo(file, suffix): # check if file matches any of the video suffixes
                     print "\n%s" % file
                     num += 1
                     videoFound = True
                     break
             if videoFound:
-                subDownloads = hasSub(file, searchPath)
+                subDownloads = hasSub(file, searchPath) # go ahead processing the video file
 
     print "\nNumber of video files in %s: %d\n" % (searchPath, num)
 
@@ -167,18 +175,65 @@ def partGet(searchPath):
 
     print "\n"
 
-if doLink and not doStatus and not doGet:
+########################################## check ##########################################
+def partCheck(recursive, searchPath, suffix):
+    print "check"
+    langSums = []
+    num = 0
+
+    if recursive: # scan directories recursively
+        print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
+        for root, dirs, files in os.walk(searchPath):
+            for file in files:
+                if isFile(os.path.join(root, file), suffix): # check if file matches criteria
+                    print "\n%s" % file
+                    langCode = hasLangCode(os.path.join(searchPath, file))
+                    if langCode != "none":
+                        print "--- Has language code %s - %s" % (langCode['code'], langCode['name'].lower())
+                        num += 1
+                    else:
+                        print "*** Has no language code"
+                        num += 1
+
+    else: # scan single directory
+        print "\nSearching %s for files ending with %s" % (searchPath, suffix)
+        for file in os.listdir(searchPath):
+            if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
+                print "\n%s" % file
+                langCode = hasLangCode(os.path.join(searchPath, file))
+                if langCode != "none":
+                    print "--- Has language code %s - %s" % (langCode['code'], langCode['name'].lower())
+                    num += 1
+                else:
+                    print "*** Has no language code"
+
+    print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, num)
+
+    print "Languages found:"
+    for lang in languages:
+        langSum = langSums.count(lang['code'])
+        if langSums.count(lang['code']) > 0:
+            print "%s - %s:  %d" % (lang['code'], lang['name'].lower(), langSum)
+    print "\n"
+
+########################################## choose what to run ##########################################
+if doLink and not doStatus and not doGet and not doCheck: # link
     partLink(recursive, searchPath, suffix)
 
-elif doStatus and not doLink and not doGet:
+elif doStatus and not doLink and not doGet and not doCheck: # status
     partStatus()
 
-elif doGet and not doLink and not doStatus:
+elif doGet and not doLink and not doStatus and not doCheck: # get
     partGet(searchPath)
 
-elif doLink and doGet and not doStatus:
+elif doLink and doGet and not doStatus: # get and link
     partGet(searchPath)
     partLink(recursive, searchPath, suffix)
+
+elif doCheck and not doLink and not doGet and not doStatus: # check
+    partCheck(recursive, searchPath, suffix)
 
 else:
     onError(5, 5)
+
+

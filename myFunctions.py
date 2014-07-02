@@ -67,8 +67,8 @@ def usage(exitCode):
     print "%s -l [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
     print "          Find files, set language code if none, and create symbolic 'l'ink to them without language code"
     print "          Options: Set -s <suffix> to set suffix to search for"
-    print "              Set -r to search 'r'ecursively"
-    print "              Set -p <path> to set other path than current"
+    print "                   Set -r to search 'r'ecursively"
+    print "                   Set -p <path> to set other path than current"
     print "     OR"
     print "%s -d" % sys.argv[0]
     print "          Get available languages from 'd'etectlanguage.com, and your account status at the same place"
@@ -77,6 +77,12 @@ def usage(exitCode):
     print "          Search video files, check if there are any srt subtitle files with language code in the name"
     print "          If not try to find and 'g'et subtitles in any of your preferred languages"
     print "          Options: Set -r to search 'r'ecursively"
+    print "                   Set -p <path> to set other path than current"
+    print "     OR"
+    print "%s -c [-p <path>] [-r]" % sys.argv[0]
+    print "          'C'heck language codes set in filenames manually"
+    print "          Options: Set -s <suffix> to set suffix to search for"
+    print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other path than current"
     print "     OR"
     print "%s -h" % sys.argv[0]
@@ -93,7 +99,6 @@ def isFile(file, suffix): # returns True if suffix is correct, is a file, is not
     result = False # set default result False
     fileExtension = os.path.splitext(file)[1] # get extension only with the leading punctuation
     if fileExtension.lower() == suffix and os.path.isfile(file) and not os.path.islink(file): # file ends with correct suffix, is a file and is not a link
-        print "\n%s" % file
         if fileEmpty(file): # file is empty
             print "*** File is empty. Deleting it..."
             os.remove(file)
@@ -262,6 +267,7 @@ def fileEmpty(file): # returns True is file is empty
     return os.stat(file).st_size==0
 
 def langName(langCode): # returns language name from language code
+    result = ""
     for lang in languages:
         if langCode == lang['code']:
             result = lang['name']
@@ -298,18 +304,14 @@ def hasSub(file, path):
     subName = os.path.splitext(file)[0]
     origWD = os.getcwd() # current working directory
     os.chdir(path) # change working directory to where the videos are
-    if os.path.isfile(file):
-        for lang in prefLangs:
-            subNameLang = "%s.%s.%s" % (subName, lang, "srt")
-            if os.path.isfile(subNameLang):
-                print "--- Already has %s subtitles" % langName(lang).lower()
-                subDownloads = foundLang("%s - present" % lang)
-            else:
-                print "*** Has no %s subtitles" % langName(lang).lower()
-                subDownloads = downloadSub(file, lang, path)
-    else:
-        print "*** Could no find %s" % file
-        subDownloads = foundLang("error")
+    for lang in prefLangs:
+        subNameLang = "%s.%s.%s" % (subName, lang, "srt")
+        if os.path.isfile(subNameLang):
+            print "--- Already has %s subtitles" % langName(lang).lower()
+            subDownloads = foundLang("%s - present" % lang)
+        else:
+            print "*** Has no %s subtitles" % langName(lang).lower()
+            subDownloads = downloadSub(file, lang, path)
     os.chdir(origWD) # change working directory back
     return subDownloads
 
