@@ -21,7 +21,7 @@ from myFunctions import *
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgc:hv' , ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check', 'help', 'verbose'])
+    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgc:hv' , ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check=', 'help', 'verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -56,8 +56,14 @@ for option, argument in myopts:
         usage(0)
     elif option in ('-c', '--check'):
         doCheck = True
-        if argument:
+        if argument == "all" or argument == "pref":
             findCode = argument
+        else:
+            for language in languages:
+                if argument == language['code']:
+                    findCode = argument
+        if not findCode:
+            onError(6, argument)
     elif option in ('-v', '--verbose'):
         verbose = True
 
@@ -179,7 +185,7 @@ def partGet(searchPath):
     print "\n"
 
 ########################################## check ##########################################
-def partCheck(recursive, searchPath, suffix):
+def partCheck(recursive, searchPath, suffix, findCode):
     langSums = []
     num = 0
 
@@ -190,29 +196,34 @@ def partCheck(recursive, searchPath, suffix):
         for root, dirs, files in os.walk(searchPath):
             for file in files:
                 if isFile(os.path.join(root, file), suffix): # check if file matches criteria
-                    print "\n%s" % file
                     existingCode = hasLangCode(os.path.join(searchPath, file))
-                    if findCode and existingCode['code'] == findCode:
-                        print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
-                        checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
-                        compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file))
-                        num += 1
-                    else:
-                        if existingCode != "none":
-                            print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
-                            checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
-                            compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file)) # compare existing and checked code
-                            num += 1
+                    if existingCode:
+                        if findCode:
+                            if existingCode['code'] == str(findCode):
+                                print "\n%s" % file
+                                print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
+                                checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
+                                compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file))
+                                num += 1
                         else:
-                            print "*** Has no language code"
+                            if existingCode:
+                                print "\n%s" % file
+                                print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
+                                checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
+                                compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file)) # compare existing and checked code
+                                num += 1
+                            else:
+                                print "*** Has no language code"
   
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
+        if findCode:
+            print "with language code %s" % findCode
         for file in os.listdir(searchPath):
             if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
                 print "\n%s" % file
                 existingCode = hasLangCode(os.path.join(searchPath, file))
-                if existingCode != "none":
+                if existingCode:
                     print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
                     checkedCode = checkLang(file, 1)  # let detectlanguage.com see what language the file has
 
@@ -246,9 +257,7 @@ elif doLink and doGet and not doStatus: # get and link
     partLink(recursive, searchPath, suffix)
 
 elif doCheck and not doLink and not doGet and not doStatus: # check
-    partCheck(recursive, searchPath, suffix)
+    partCheck(recursive, searchPath, suffix, findCode)
 
 else:
     onError(5, 5)
-
-

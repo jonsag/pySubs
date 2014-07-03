@@ -57,6 +57,7 @@ def onError(errorCode, extra):
         print "Wrong set of options given"
         usage(errorCode)
     elif errorCode == 6:
+        print "%s is not a valid argument" % extra
         usage(errorCode)
     else:
         print "\nError: Unknown"
@@ -79,8 +80,11 @@ def usage(exitCode):
     print "          Options: Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other path than current"
     print "     OR"
-    print "%s -c [-p <path>] [-r]" % sys.argv[0]
+    print "%s -c [all|pref|<code>] [-p <path>] [-r]" % sys.argv[0]
     print "          'C'heck language codes set in filenames manually"
+    print "          Arguments: all checks all files with languagecode set"
+    print "                     pref checks all files with any of your preferred languages"
+    print "                     <code>, give a valid language code"
     print "          Options: Set -s <suffix> to set suffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other path than current"
@@ -100,14 +104,15 @@ def isFile(file, suffix): # returns True if suffix is correct, is a file, is not
     fileExtension = os.path.splitext(file)[1] # get extension only with the leading punctuation
     if fileExtension.lower() == suffix and os.path.isfile(file) and not os.path.islink(file): # file ends with correct suffix, is a file and is not a link
         if fileEmpty(file): # file is empty
+            print "\n%s" % file
             print "*** File is empty. Deleting it..."
             os.remove(file)
         else:
             result = True # file ends with correct suffix, is a file, is not a link and is empty
     return result
 
-def hasLangCode(file): # returns the language code present, if there is one. Otherwise returns "none"
-    result = "none" # default return code
+def hasLangCode(file): # returns the language code present, if there is one. Otherwise returns empty
+    result = "" # default return code
     fileName = os.path.splitext(file)[0] # file name without punctuation and suffix
     for code in languages:
         if '.%s' % code['code'] == os.path.splitext(fileName)[1] or '.%s' % "xx" == os.path.splitext(fileName)[1]: # adds punctuation before code, and compares to suffix in stripped file name. If same, returns code
@@ -116,9 +121,9 @@ def hasLangCode(file): # returns the language code present, if there is one. Oth
 
 def fileFound(file, langSums, verbose): # runs on every file that matches suffix, is not a link and is not empty
     acceptUnreliable = config.get('variables','acceptUnreliable') # True if we accept unreliable as language code
-    codePresent = hasLangCode(file) # check if the file already has a language code. Returns code if there is one, otherwise "none"
+    codePresent = hasLangCode(file) # check if the file already has a language code. Returns code if there is one, otherwise empty
 
-    if codePresent == "none": # file name has no language code
+    if not codePresent: # file name has no language code
         checkCode = checkLang(file, verbose) # determine what language file has. Returns language code
         if acceptUnreliable: # we accept "unreliable" as language code
             addLangCode(file, checkCode) # add language code to file name
