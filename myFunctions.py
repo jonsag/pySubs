@@ -42,7 +42,7 @@ languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
 def onError(errorCode, extra):
     print "\nError:"
     if errorCode == 1:
-        print getoptError
+        print extra
         usage(errorCode)
     elif errorCode == 2:
         print "No options given"
