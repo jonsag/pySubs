@@ -214,7 +214,7 @@ def checkLang(file, verbose): # checks file for language and returns language co
         text = convertText(head) # convert all strange characters, remove special characters and so on
 
         if verbose:
-            print text
+            print "\n%s\n" % text
 
         print "--- Sending rows %d-%d to detectlanguage.com" % (tryNumber * detectRows, (tryNumber + 1) * detectRows)
         result = detectlanguage.detect(text) # detect language
@@ -338,3 +338,45 @@ def downloadSub(file, lang, path):
         subName = "%s.%s.%s" % (os.path.splitext(file)[0], lang, "srt")
     os.chdir(origWD) # change working directory back
     return subDownloads
+
+def compareCodes(existingCode, checkedCode, file):
+
+    print "existing: %s   checked: %s" % (existingCode, checkedCode)
+
+    if existingCode == checkedCode:
+        print "--- detectlanguage.com agrees"
+    else:
+        print "*** detectlanguage.com disagrees"
+        print "\n    Existing code is %s - %s, and checked code is %s - %s\n" % (existingCode, langName(existingCode).lower(), checkedCode, langName(existingCode).lower())
+
+        print "    1 - Save as is: %s - %s" % (existingCode, langName(existingCode).lower())
+        print "    2 - Change to detected code: %s - %s" % (checkedCode, langName(checkedCode).lower())
+        print "    3 - Set to new code"
+
+        while True:
+            choice = raw_input("\n    Your choice: ")
+            if choice == "1":
+                print "--- Keeping existing code %s" % existingCode
+                break
+            elif choice == "2":
+                print "--- Setting language code to %s" % checkedCode
+                changeCode(file, checkedCode)
+                break
+            elif choice == "3":
+                while True:
+                    newCode = raw_input("\n    Enter new code: ")
+                    for language in languages:
+                        if newCode == language['code']:
+                            allowed = True
+                            break
+                        else:
+                            allowed = False
+                    if allowed:
+                        break
+                    else:
+                        print "\n    %s not a valid language code" % newCode
+                changeCode(file, newCode)
+                break
+            else:
+                print "\n    Not a valid choice"
+
