@@ -114,9 +114,9 @@ def isFile(file, suffix): # returns True if suffix is correct, is a file, is not
 def hasLangCode(file): # returns the language code present, if there is one. Otherwise returns empty
     result = "" # default return code
     fileName = os.path.splitext(file)[0] # file name without punctuation and suffix
-    for code in languages:
-        if '.%s' % code['code'] == os.path.splitext(fileName)[1] or '.%s' % "xx" == os.path.splitext(fileName)[1]: # adds punctuation before code, and compares to suffix in stripped file name. If same, returns code
-            result = code # set detected language code to result
+    for language in languages:
+        if '.%s' % language['code'] == os.path.splitext(fileName)[1]: # adds punctuation before code, and compares to suffix in stripped file name. If same, returns code
+            result = language # set detected language code to result
     return result # return detected language code
 
 def fileFound(file, langSums, verbose): # runs on every file that matches suffix, is not a link and is not empty
@@ -352,7 +352,8 @@ def compareCodes(existingCode, checkedCode, file):
         print "--- detectlanguage.com agrees"
     else:
         print "*** detectlanguage.com disagrees"
-        print "\n    Existing code is %s - %s, and checked code is %s - %s\n" % (existingCode, langName(existingCode).lower(), checkedCode, langName(existingCode).lower())
+        print "\n    %s" % file
+        print "    Existing code is %s - %s, and checked code is %s - %s\n" % (existingCode, langName(existingCode).lower(), checkedCode, langName(existingCode).lower())
 
         print "    1 - Save as is: %s - %s" % (existingCode, langName(existingCode).lower())
         print "    2 - Change to detected code: %s - %s" % (checkedCode, langName(checkedCode).lower())
