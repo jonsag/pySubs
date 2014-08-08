@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import re, sys, ConfigParser, os, detectlanguage, codecs
+import re, sys, ConfigParser, os, detectlanguage, codecs, chardet
 
 from itertools import islice
 from sys import exit
 from string import digits
 from collections import namedtuple
 from subprocess import call
+from BeautifulSoup import BeautifulSoup, UnicodeDammit
 
 # libraries for subliminal
 #from __future__ import unicode_literals  # python 2 only
@@ -38,6 +39,8 @@ detectlanguage.configuration.api_key = config.get('detectlanguage_com','api-key'
 languages = detectlanguage.languages() # get available languages from detectlanguage.com
 
 languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
+
+prefEncoding = config.get('coding','prefEncoding') # your preferrd file encoding
 
 def onError(errorCode, extra):
     print "\nError:"
@@ -70,16 +73,16 @@ def usage(exitCode):
     print "          Options: Set -s <suffix> to set suffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other path than current"
-    print "     OR"
+    print "     OR\n"
     print "%s -d" % sys.argv[0]
     print "          Get available languages from 'd'etectlanguage.com, and your account status at the same place"
-    print "     OR"
+    print "     OR\n"
     print "%s -g [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
     print "          Search video files, check if there are any srt subtitle files with language code in the name"
     print "          If not try to find and 'g'et subtitles in any of your preferred languages"
     print "          Options: Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other path than current"
-    print "     OR"
+    print "     OR\n"
     print "%s -c [all|pref|<code>] [-p <path>] [-r]" % sys.argv[0]
     print "          'C'heck language codes set in filenames manually"
     print "          Arguments: all checks all files with languagecode set"
@@ -88,7 +91,12 @@ def usage(exitCode):
     print "          Options: Set -s <suffix> to set suffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other path than current"
-    print "     OR"
+    print "     OR\n"
+    print "%s -f [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
+    print "          Find subtitles, check 'f'ormat, and convert to UTF8, and convert to srt"
+    print "          Options: Set -s <suffix> to set suffix to search for"
+    print "                   Set -r to search 'r'ecursively"
+    print "                   Set -p <path> to set other path than current"
     print "%s -h" % sys.argv[0]
     print "          Prints this"
     print "\n"
@@ -373,6 +381,7 @@ def compareCodes(existingCode, checkedCode, file):
                     newCode = raw_input("\n    Enter new code: ")
                     for language in languages:
                         if newCode == language['code']:
+
                             allowed = True
                             break
                         else:
@@ -386,3 +395,12 @@ def compareCodes(existingCode, checkedCode, file):
             else:
                 print "\n    Not a valid choice"
 
+
+def checkCoding(file):
+    myFile = open(file)
+
+    soup = BeautifulSoup(myFile)
+
+    myFile.close()
+
+    return soup.originalEncoding

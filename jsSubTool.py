@@ -21,7 +21,7 @@ from myFunctions import *
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgc:hv' , ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check=', 'help', 'verbose'])
+    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgc:fhv' , ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check=', 'format', 'help', 'verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -33,6 +33,7 @@ doLink = False
 doStatus = False
 doGet = False
 doCheck = False
+doFormat = False
 verbose = False
 findCode = ""
 
@@ -64,10 +65,12 @@ for option, argument in myopts:
                     findCode = argument
         if not findCode:
             onError(6, argument)
+    elif option in ('-f', '--format'):
+        doFormat = True
     elif option in ('-v', '--verbose'):
         verbose = True
 
-if not doLink and not doStatus and not doGet and not doCheck: # no program part selected
+if not doLink and not doStatus and not doGet and not doCheck and not doFormat: # no program part selected
     onError(3, 3)
 
 if searchPath: # argument -p --path passed
@@ -93,7 +96,7 @@ def partLink(recursive, searchPath, suffix):
         for root, dirs, files in os.walk(searchPath):
             for file in files:
                 if isFile(os.path.join(root, file), suffix): # check if file matches criteria
-                    print "\n%s" % file
+                    print "\n%s" % os.path.join(root, file)
                     langSums = fileFound(os.path.join(root, file), langSums, verbose) # go ahead with the file
                     num += 1
 
@@ -146,7 +149,7 @@ def partGet(searchPath):
                 videoFound = False
                 for suffix in videoSuffixes:
                     if isVideo(os.path.join(str(root), file), suffix): # check if file matches any of the video suffixes
-                        print "\n%s" % file
+                        print "\n%s" % os.path.join(str(root), file)
                         num += 1
                         videoFound = True
                         break
@@ -200,14 +203,14 @@ def partCheck(recursive, searchPath, suffix, findCode):
                     if existingCode:
                         if findCode:
                             if existingCode['code'] == str(findCode):
-                                print "\n%s" % file
+                                print "\n%s" % os.path.join(root, file)
                                 print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
                                 checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
                                 compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file))
                                 num += 1
                         else:
                             if existingCode:
-                                print "\n%s" % file
+                                print "\n%s" % os.path.join(root, file)
                                 print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
                                 checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
                                 compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file)) # compare existing and checked code
@@ -242,15 +245,48 @@ def partCheck(recursive, searchPath, suffix, findCode):
             print "%s - %s:  %d" % (lang['code'], lang['name'].lower(), langSum)
     print "\n"
 
+########################################## format ##########################################
+def partFormat(searchPath):
+
+    if recursive: # scan directories recursively
+        print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
+        if findCode:
+            print "with language code %s" % findCode
+        for root, dirs, files in os.walk(searchPath):
+            for file in files:
+                if isFile(os.path.join(root, file), suffix): # check if file matches criteria
+                    print "\n%s" % os.path.join(root, file)
+                    coding = checkCoding(os.path.join(root, file)) # get coding for file
+                    if coding == prefEncoding:
+                        print "--- Encoded in %s" % coding # correct encoding
+                    else:
+                        print "*** Encoded in %s" % coding # wrong encoding
+
+    else: # scan single directory
+        print "\nSearching %s for files ending with %s" % (searchPath, suffix)
+        if findCode:
+            print "with language code %s" % findCode
+        for file in os.listdir(searchPath):
+            if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
+                print "\n%s" % file
+                coding = checkCoding(os.path.join(searchPath, file))
+                if coding == prefEncoding:
+                    print "--- Encoded in %s" % coding # correct encoding
+                else:
+                    print "*** Encoded in %s" % coding # wrong encodin
+
 ########################################## choose what to run ##########################################
-if doLink and not doStatus and not doGet and not doCheck: # link
+if doLink and not doStatus and not doGet and not doCheck and not doFormat: # find language in subs and create links
     partLink(recursive, searchPath, suffix)
 
-elif doStatus and not doLink and not doGet and not doCheck: # status
+elif doStatus and not doLink and not doGet and not doCheck and not doFormat: # status
     partStatus()
 
-elif doGet and not doLink and not doStatus and not doCheck: # get
+elif doGet and not doLink and not doStatus and not doCheck and not doFormat: # get subs for video files
     partGet(searchPath)
+
+elif doFormat and not doLink and not doGet and not doCheck and not doStatus: # check subs format, convert to UTF8 and convert to srt
+    partFormat(searchPath)
 
 elif doLink and doGet and not doStatus: # get and link
     partGet(searchPath)
