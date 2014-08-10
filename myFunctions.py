@@ -468,13 +468,12 @@ def emptyLines(file, keep, verbose):
     linesToDelete = []
 
     if verbose:
-        print "--- Searching for empty lines"
+        print "--- Searching for empty entries"
     subs = pysrt.open(file, encoding='utf-8')
     lines = len(subs)
-    print "--- %s lines" % lines
+    print "--- %s entries total" % lines
 
     for lineNo in range(0, lines):
-        #print line
         subLine = "%s" % subs[lineNo]
         rows = subLine.split('\n')
         rowNo = 0
@@ -485,13 +484,12 @@ def emptyLines(file, keep, verbose):
                 emptyLine = True
             if emptyLine and rowNo == 3 and row == "":
                 emptyLineFound = True
-                #print "*** Empty line found"
                 emptyLines += 1
                 linesToDelete.append(lineNo)
             rowNo += 1
 
     if emptyLineFound:
-        print "*** %s empty lines found" % emptyLines
+        print "*** %s empty entries found" % emptyLines
 
         for lineNo in reversed(linesToDelete):
             #print lineNo
@@ -499,11 +497,11 @@ def emptyLines(file, keep, verbose):
             
         if keep:
             if verbose:
-                print "--- Copying original file to %s.emptyLines" % file
-            copyfile(file, "%s.emptyLines" % file)
+                print "--- Copying original file to %s.emptyEntries" % file
+            copyfile(file, "%s.emptyEntries" % file)
             
         subs.save(file, encoding='utf-8')
 
         subs = pysrt.open(file, encoding='utf-8')
         lines = len(subs)
-        print "--- Now has %s lines" % lines
+        print "--- Now has %s entries" % lines
