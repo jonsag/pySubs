@@ -11,6 +11,7 @@ from collections import namedtuple
 from subprocess import call
 from BeautifulSoup import BeautifulSoup, UnicodeDammit
 from pycaption import detect_format, SRTReader, SRTWriter, SAMIReader, SAMIWriter, CaptionConverter
+from shutil import copyfile
 
 # libraries for subliminal
 #from __future__ import unicode_literals  # python 2 only
@@ -461,8 +462,48 @@ def samiToSrt(file, keep, verbose):
             print "--- Deleting temporary file %s.sami" % file
         os.remove("%s.sami" % file)
 
-def findVideo(file, verbose):
-    videoFile = ""
+def emptyLines(file, keep, verbose):
+    emptyLineFound = False
+    emptyLines = 0
+    linesToDelete = []
+
     if verbose:
-        print "--- Searching for matching video"
-    return videoFile
+        print "--- Searching for empty lines"
+    subs = pysrt.open(file, encoding='utf-8')
+    lines = len(subs)
+    print "--- %s lines" % lines
+
+    for lineNo in range(0, lines):
+        #print line
+        subLine = "%s" % subs[lineNo]
+        rows = subLine.split('\n')
+        rowNo = 0
+        emptyLine = False
+
+        for row in rows:
+            if rowNo == 2 and row == "&nbsp;":
+                emptyLine = True
+            if emptyLine and rowNo == 3 and row == "":
+                emptyLineFound = True
+                #print "*** Empty line found"
+                emptyLines += 1
+                linesToDelete.append(lineNo)
+            rowNo += 1
+
+    if emptyLineFound:
+        print "*** %s empty lines found" % emptyLines
+
+        for lineNo in reversed(linesToDelete):
+            #print lineNo
+            del subs[lineNo]
+            
+        if keep:
+            if verbose:
+                print "--- Copying original file to %s.emptyLines" % file
+            copyfile(file, "%s.emptyLines" % file)
+            
+        subs.save(file, encoding='utf-8')
+
+        subs = pysrt.open(file, encoding='utf-8')
+        lines = len(subs)
+        print "--- Now has %s lines" % lines

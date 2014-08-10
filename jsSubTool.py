@@ -267,10 +267,12 @@ def partFormat(searchPath):
                     elif format == "srt":
                         print "--- Srt format"
                         srtFormat += 1
+                        emptyLines(os.path.join(root, file), keep, verbose)
                     elif format == "sami":
                         print "*** Sami format"
                         samiFormat += 1
                         samiToSrt(os.path.join(root, file), keep, verbose)
+                        emptyLines(os.path.join(root, file), keep, verbose)
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
@@ -297,10 +299,12 @@ def partFormat(searchPath):
                 elif format == "srt":
                     print "--- Srt format"
                     srtFormat += 1
+                    emptyLines(os.path.join(searchPath, file), keep, verbose)
                 elif format == "sami":
                     print "*** Sami format"
                     samiFormat += 1
                     samiToSrt(os.path.join(searchPath, file), keep, verbose)
+                    emptyLines(os.path.join(searchPath, file), keep, verbose)
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
 
