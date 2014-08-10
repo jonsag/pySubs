@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import re, sys, ConfigParser, os, detectlanguage, codecs, chardet
+import re, sys, ConfigParser, os, detectlanguage, codecs, codecs
 
 from itertools import islice
 from sys import exit
@@ -10,6 +10,7 @@ from string import digits
 from collections import namedtuple
 from subprocess import call
 from BeautifulSoup import BeautifulSoup, UnicodeDammit
+from pycaption import detect_format, SRTReader, SRTWriter, SAMIReader, SAMIWriter, CaptionConverter
 
 # libraries for subliminal
 #from __future__ import unicode_literals  # python 2 only
@@ -70,9 +71,9 @@ def usage(exitCode):
     print "----------------------------------------"
     print "%s -l [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
     print "          Find files, set language code if none, and create symbolic 'l'ink to them without language code"
-    print "          Options: Set -s <suffix> to set suffix to search for"
+    print "          Options: Set -s <suffix> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
-    print "                   Set -p <path> to set other path than current"
+    print "                   Set -p <path> to set other 'p'ath than current"
     print "     OR\n"
     print "%s -d" % sys.argv[0]
     print "          Get available languages from 'd'etectlanguage.com, and your account status at the same place"
@@ -81,22 +82,23 @@ def usage(exitCode):
     print "          Search video files, check if there are any srt subtitle files with language code in the name"
     print "          If not try to find and 'g'et subtitles in any of your preferred languages"
     print "          Options: Set -r to search 'r'ecursively"
-    print "                   Set -p <path> to set other path than current"
+    print "                   Set -p <path> to set other 'p'ath than current"
     print "     OR\n"
     print "%s -c [all|pref|<code>] [-p <path>] [-r]" % sys.argv[0]
     print "          'C'heck language codes set in filenames manually"
     print "          Arguments: all checks all files with languagecode set"
     print "                     pref checks all files with any of your preferred languages"
     print "                     <code>, give a valid language code"
-    print "          Options: Set -s <suffix> to set suffix to search for"
+    print "          Options: Set -s <suffix> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
-    print "                   Set -p <path> to set other path than current"
+    print "                   Set -p <path> to set other 'p'ath than current"
     print "     OR\n"
-    print "%s -f [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
+    print "%s -f [-k] [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
     print "          Find subtitles, check 'f'ormat, and convert to UTF8, and convert to srt"
-    print "          Options: Set -s <suffix> to set suffix to search for"
+    print "          Options: Set -k to 'k'eep temporary file"
+    print "                   Set -s <suffix> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
-    print "                   Set -p <path> to set other path than current"
+    print "                   Set -p <path> to set other 'p'ath than current"
     print "%s -h" % sys.argv[0]
     print "          Prints this"
     print "\n"
@@ -107,8 +109,10 @@ dbmCacheFile = "%s/%s/cachefile.dbm" % (os.path.expanduser("~"), config.get('vid
 
 videoSuffixes = (config.get('video','videoSuffixes')).split(',') # load video suffixes
 
-def isFile(file, suffix): # returns True if suffix is correct, is a file, is not a link and is not empty
+def isFile(file, suffix, verbose): # returns True if suffix is correct, is a file, is not a link and is not empty
     result = False # set default result False
+    #if verbose:
+    #    print "--- Checking if %s matches our criteria" % file
     fileExtension = os.path.splitext(file)[1] # get extension only with the leading punctuation
     if fileExtension.lower() == suffix and os.path.isfile(file) and not os.path.islink(file): # file ends with correct suffix, is a file and is not a link
         if fileEmpty(file): # file is empty
@@ -395,12 +399,70 @@ def compareCodes(existingCode, checkedCode, file):
             else:
                 print "\n    Not a valid choice"
 
-
 def checkCoding(file):
     myFile = open(file)
-
     soup = BeautifulSoup(myFile)
-
     myFile.close()
-
     return soup.originalEncoding
+
+def changeEncoding(file, encoding, keep, verbose):
+    if verbose:
+        print "--- Renaming to %s.%s" % (file, encoding)
+    os.rename(file, "%s.%s" % (file, encoding))
+    print "--- Changing encoding to %s" % prefEncoding
+    blockSize = 1048576 # or some other, desired size in bytes
+    with codecs.open("%s.%s" % (file, encoding), "r", encoding) as sourceFile:
+        with codecs.open(file, "w", prefEncoding) as targetFile:
+            while True:
+                contents = sourceFile.read(blockSize)
+                if not contents:
+                    break
+                if verbose:
+                    print "--- Writing %s" % file
+                targetFile.write(contents)
+    sourceFile.close()
+    targetFile.close()
+    if not keep:
+        if verbose:
+            print "--- Deleting temporary file %s.%s" % (file, encoding)
+        os.remove("%s.%s" % (file, encoding))
+
+def checkFormat(file, verbose):
+    if verbose:
+        print "--- Checking subtitle format"
+    capsFile = open(file)
+    caps = capsFile.read()
+    reader = detect_format(caps)
+    if reader:
+        if "srt" in str(reader):
+            format = "srt"
+        elif "sami" in str(reader):
+            format = "sami"
+        else:
+            format = ""
+    capsFile.close()
+    return format
+
+def samiToSrt(file, keep, verbose):
+    if verbose:
+        print "--- Renaming to %s.sami" % file
+    os.rename(file, "%s.sami" % file)
+    print "--- Converting to srt"
+    sourceFile = open("%s.sami" % file)
+    caps = sourceFile.read()
+    converter = CaptionConverter()
+    converter.read(caps, SAMIReader())
+    with open(file, "w") as targetFile:
+        targetFile.write(converter.write(SRTWriter()))
+    sourceFile.close()
+    targetFile.close()
+    if not keep:
+        if verbose:
+            print "--- Deleting temporary file %s.sami" % file
+        os.remove("%s.sami" % file)
+
+def findVideo(file, verbose):
+    videoFile = ""
+    if verbose:
+        print "--- Searching for matching video"
+    return videoFile

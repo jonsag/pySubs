@@ -21,7 +21,7 @@ from myFunctions import *
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgc:fhv' , ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check=', 'format', 'help', 'verbose'])
+    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgc:fkhv' , ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check=', 'format', 'keep', 'help', 'verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
@@ -35,6 +35,7 @@ doGet = False
 doCheck = False
 doFormat = False
 verbose = False
+keep = False
 findCode = ""
 
 if len(sys.argv) == 1: # no options passed
@@ -67,6 +68,8 @@ for option, argument in myopts:
             onError(6, argument)
     elif option in ('-f', '--format'):
         doFormat = True
+    elif option in ('-k', '--keep'):
+        keep = True
     elif option in ('-v', '--verbose'):
         verbose = True
 
@@ -95,7 +98,7 @@ def partLink(recursive, searchPath, suffix):
         print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
         for root, dirs, files in os.walk(searchPath):
             for file in files:
-                if isFile(os.path.join(root, file), suffix): # check if file matches criteria
+                if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
                     print "\n%s" % os.path.join(root, file)
                     langSums = fileFound(os.path.join(root, file), langSums, verbose) # go ahead with the file
                     num += 1
@@ -103,7 +106,7 @@ def partLink(recursive, searchPath, suffix):
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
         for file in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
+            if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
                 print "\n%s" % file
                 langSums = fileFound(os.path.join(searchPath, file), langSums, verbose) # go ahead with the file
                 num += 1
@@ -198,7 +201,7 @@ def partCheck(recursive, searchPath, suffix, findCode):
             print "with language code %s" % findCode
         for root, dirs, files in os.walk(searchPath):
             for file in files:
-                if isFile(os.path.join(root, file), suffix): # check if file matches criteria
+                if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
                     existingCode = hasLangCode(os.path.join(searchPath, file))
                     if existingCode:
                         if findCode:
@@ -223,7 +226,7 @@ def partCheck(recursive, searchPath, suffix, findCode):
         if findCode:
             print "with language code %s" % findCode
         for file in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
+            if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
                 print "\n%s" % file
                 existingCode = hasLangCode(os.path.join(searchPath, file))
                 if existingCode:
@@ -247,6 +250,9 @@ def partCheck(recursive, searchPath, suffix, findCode):
 
 ########################################## format ##########################################
 def partFormat(searchPath):
+    noFormat = 0
+    srtFormat = 0
+    samiFormat = 0
 
     if recursive: # scan directories recursively
         print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
@@ -254,26 +260,72 @@ def partFormat(searchPath):
             print "with language code %s" % findCode
         for root, dirs, files in os.walk(searchPath):
             for file in files:
-                if isFile(os.path.join(root, file), suffix): # check if file matches criteria
+                if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
                     print "\n%s" % os.path.join(root, file)
-                    coding = checkCoding(os.path.join(root, file)) # get coding for file
-                    if coding == prefEncoding:
-                        print "--- Encoded in %s" % coding # correct encoding
+
+                    encoding = checkCoding(os.path.join(root, file))
+                    if encoding == "ISO-8859-2":
+                        print "*** Detected as %s. Probably is %s. Changing..." % (encoding, "ISO-8859-1")
+                        encoding = "ISO-8859-1"
+                    if encoding == prefEncoding:
+                        print "--- Encoded in %s" % encoding # correct encoding
                     else:
-                        print "*** Encoded in %s" % coding # wrong encoding
+                        print "*** Encoded in %s" % encoding # wrong encoding
+                        changeEncoding(os.path.join(root, file), encoding, keep, verbose)
+
+                    format = checkFormat(os.path.join(root, file), verbose)
+                    if not format:
+                        print "*** Could not detect format"
+                        noFormat += 1
+                    elif format == "srt":
+                        print "--- Srt format"
+                        srtFormat += 1
+                    elif format == "sami":
+                        print "*** Sami format"
+                        samiFormat += 1
+                        samiToSrt(os.path.join(root, file), keep, verbose)
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
         if findCode:
             print "with language code %s" % findCode
         for file in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, file), suffix): # check if file matches criteria
+            if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
                 print "\n%s" % file
-                coding = checkCoding(os.path.join(searchPath, file))
-                if coding == prefEncoding:
-                    print "--- Encoded in %s" % coding # correct encoding
+
+                encoding = checkCoding(os.path.join(searchPath, file))
+                if encoding == "ISO-8859-2":
+                    print "*** Detected as %s. Probably is %s. Changing..." % (encoding, "ISO-8859-1")
+                    encoding = "ISO-8859-1"
+                if encoding == prefEncoding:
+                    print "--- Encoded in %s" % encoding # correct encoding
                 else:
-                    print "*** Encoded in %s" % coding # wrong encodin
+                    print "*** Encoded in %s" % encoding # wrong encodin
+                    changeEncoding(os.path.join(searchPath, file), encoding, keep, verbose)
+                    
+                format = checkFormat(os.path.join(searchPath, file), verbose)
+                if not format:
+                    print "*** Could not detect format"
+                    noFormat += 1
+                elif format == "srt":
+                    print "--- Srt format"
+                    srtFormat += 1
+                elif format == "sami":
+                    print "*** Sami format"
+                    samiFormat += 1
+                    samiToSrt(os.path.join(searchPath, file), keep, verbose)
+
+    print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
+
+    print "Formats found:"
+    if noFormat > 0:
+        print "Not detected: %s" % noFormat
+    if srtFormat > 0:
+        print "srt: %s" % srtFormat
+    if samiFormat > 0:
+        print "sami: %s" % samiFormat
+    print "\n"
+
 
 ########################################## choose what to run ##########################################
 if doLink and not doStatus and not doGet and not doCheck and not doFormat: # find language in subs and create links
