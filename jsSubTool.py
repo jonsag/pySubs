@@ -4,20 +4,9 @@
 
 # edit .conf to suit your needs
 
-# options:
-# -p <path> scan single path
-# -r <path> scan path recursively
-# -s <suffix> file suffix to search for
-
-#import sys, getopt, os
 import getopt
 
 from myFunctions import *
-
-##### set config file #####
-#config = configparser.ConfigParser()
-#config.sections()
-#config.read('setSubLang.ini') # read config file
 
 ##### handle arguments #####
 try:
@@ -232,9 +221,7 @@ def partCheck(recursive, searchPath, suffix, findCode):
                 if existingCode:
                     print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
                     checkedCode = checkLang(file, 1)  # let detectlanguage.com see what language the file has
-
                     compareCodes(existingCode['code'], checkedCode, file)
-
                     num += 1
                 else:
                     print "*** Has no language code"
@@ -331,20 +318,24 @@ def partFormat(searchPath):
 if doLink and not doStatus and not doGet and not doCheck and not doFormat: # find language in subs and create links
     partLink(recursive, searchPath, suffix)
 
-elif doStatus and not doLink and not doGet and not doCheck and not doFormat: # status
+elif doStatus and not doLink and not doGet and not doCheck and not doFormat: # status at detectlanguage.com
     partStatus()
 
 elif doGet and not doLink and not doStatus and not doCheck and not doFormat: # get subs for video files
     partGet(searchPath)
 
-elif doFormat and not doLink and not doGet and not doCheck and not doStatus: # check subs format, convert to UTF8 and convert to srt
+elif doFormat and not doLink and not doGet and not doCheck and not doStatus: # check subs format, convert to UTF-8 and convert to srt
     partFormat(searchPath)
 
-elif doLink and doGet and not doStatus: # get and link
+elif doLink and doGet and not doStatus and not doFormat: # get and link
     partGet(searchPath)
     partLink(recursive, searchPath, suffix)
 
-elif doCheck and not doLink and not doGet and not doStatus: # check
+elif doFormat and doLink and not doGet and not doStatus and not doCheck: # format and link
+    partFormat(searchPath)
+    partLink(recursive, searchPath, suffix)
+
+elif doCheck and not doLink and not doGet and not doStatus and not doFormat: # check language codes manually
     partCheck(recursive, searchPath, suffix, findCode)
 
 else:

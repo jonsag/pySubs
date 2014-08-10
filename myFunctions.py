@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import re, sys, ConfigParser, os, detectlanguage, codecs, codecs
+import re, sys, ConfigParser, os, detectlanguage, codecs, codecs, pysrt
 
 from itertools import islice
 from sys import exit
