@@ -148,7 +148,7 @@ def fileFound(file, langSums, verbose): # runs on every file that matches suffix
                 print "*** Can't determine if language code present is correct. Doing nothing further"
 
     else: # file name has language code
-        print "*** Already has language code %s - %s" % (codePresent['code'], codePresent['name'])
+        print "*** Already has language code %s - %s" % (codePresent['code'], codePresent['name'].lower())
         langSums = foundLang(codePresent['code']) # sending language code to be added if language code was present
 
         if hasLink(file) and codePresent != "xx": # file has link and language code is not xx
@@ -361,9 +361,9 @@ def compareCodes(existingCode, checkedCode, file):
 
     print "existing: %s   checked: %s" % (existingCode, checkedCode)
 
-    if existingCode == checkedCode:
+    if existingCode == checkedCode: # set code and detected codes match
         print "--- detectlanguage.com agrees"
-    else:
+    else: # set code and detected codes does not match 
         print "*** detectlanguage.com disagrees"
         print "\n    %s" % file
         print "    Existing code is %s - %s, and checked code is %s - %s\n" % (existingCode, langName(existingCode).lower(), checkedCode, langName(existingCode).lower())
@@ -373,56 +373,65 @@ def compareCodes(existingCode, checkedCode, file):
         print "    3 - Set to new code"
 
         while True:
-            choice = raw_input("\n    Your choice: ")
+            choice = raw_input("\n    Your choice: ") # get choice
             if choice == "1":
                 print "--- Keeping existing code %s" % existingCode
                 break
             elif choice == "2":
                 print "--- Setting language code to %s" % checkedCode
-                changeCode(file, checkedCode)
+                changeCode(file, checkedCode) # change code to the detected one
                 break
             elif choice == "3":
                 while True:
-                    newCode = raw_input("\n    Enter new code: ")
-                    for language in languages:
-                        if newCode == language['code']:
+                    newCode = raw_input("\n    Enter new code: ") # type in code
+                    for language in languages: # run through codes to find if typed one is allowed
+                        if newCode == language['code']: # typed code is allowed
 
                             allowed = True
                             break
-                        else:
+                        else: # typed code is not allowed
                             allowed = False
-                    if allowed:
+                    if allowed: # typed code is allowed
                         break
-                    else:
+                    else: #  # typed code is not allowed
                         print "\n    %s not a valid language code" % newCode
-                changeCode(file, newCode)
+                changeCode(file, newCode) # change code to your input
                 break
             else:
                 print "\n    Not a valid choice"
 
 def checkCoding(file):
-    myFile = open(file)
-    soup = BeautifulSoup(myFile)
-    myFile.close()
-    return soup.originalEncoding
+    myFile = open(file) # open sub
+    soup = BeautifulSoup(myFile) # read sub into BeautifulSoup
+    myFile.close() # close sub
+    encoding = soup.originalEncoding # let soup detect encoding
+    if encoding == "ISO-8859-2":
+        print "*** Detected ISO-8859-2. Assuming it's ISO-8859-1"
+        encoding = "ISO-8859-1"
+    elif encoding == "windows-1251":
+        #print "*** Detected windows-1251. Assuming it's cp1251"
+        #encoding = "cp1251"
+        print "*** Detected windows-1251. Assuming it's ISO-8859-1"
+        encoding = "ISO-8859-1"
+    return encoding
 
 def changeEncoding(file, encoding, keep, verbose):
     if verbose:
         print "--- Renaming to %s.%s" % (file, encoding)
     os.rename(file, "%s.%s" % (file, encoding))
     print "--- Changing encoding to %s" % prefEncoding
-    blockSize = 1048576 # or some other, desired size in bytes
-    with codecs.open("%s.%s" % (file, encoding), "r", encoding) as sourceFile:
-        with codecs.open(file, "w", prefEncoding) as targetFile:
+    blockSize = 1048576 # size in bytes to read every chunk
+    with codecs.open("%s.%s" % (file, encoding), "r", encoding) as sourceFile: # open the copy as source
+        with codecs.open(file, "w", prefEncoding) as targetFile: # open the target
             while True:
                 contents = sourceFile.read(blockSize)
                 if not contents:
                     break
                 if verbose:
                     print "--- Writing %s" % file
-                targetFile.write(contents)
-    sourceFile.close()
-    targetFile.close()
+                targetFile.write(contents) # write chunk to target
+    sourceFile.close() # close source
+    targetFile.close() # close target
     if not keep:
         if verbose:
             print "--- Deleting temporary file %s.%s" % (file, encoding)
@@ -431,9 +440,9 @@ def changeEncoding(file, encoding, keep, verbose):
 def checkFormat(file, verbose):
     if verbose:
         print "--- Checking subtitle format"
-    capsFile = open(file)
-    caps = capsFile.read()
-    reader = detect_format(caps)
+    capsFile = open(file) # open sub
+    caps = capsFile.read() # read sub
+    reader = detect_format(caps) # detect format with pycaption
     if reader:
         if "srt" in str(reader):
             format = "srt"
@@ -441,7 +450,7 @@ def checkFormat(file, verbose):
             format = "sami"
         else:
             format = ""
-    capsFile.close()
+    capsFile.close() # close sub
     return format
 
 def samiToSrt(file, keep, verbose):
@@ -449,59 +458,79 @@ def samiToSrt(file, keep, verbose):
         print "--- Renaming to %s.sami" % file
     os.rename(file, "%s.sami" % file)
     print "--- Converting to srt"
-    sourceFile = open("%s.sami" % file)
-    caps = sourceFile.read()
-    converter = CaptionConverter()
-    converter.read(caps, SAMIReader())
-    with open(file, "w") as targetFile:
-        targetFile.write(converter.write(SRTWriter()))
-    sourceFile.close()
-    targetFile.close()
+    sourceFile = open("%s.sami" % file) # open copy as source
+    caps = sourceFile.read() # read source
+    converter = CaptionConverter() # set pycaptions converter
+    converter.read(caps, SAMIReader()) # read sami
+    with open(file, "w") as targetFile: # open target
+        targetFile.write(converter.write(SRTWriter())) # write target
+    sourceFile.close() # close source
+    targetFile.close() # close target
     if not keep:
         if verbose:
             print "--- Deleting temporary file %s.sami" % file
         os.remove("%s.sami" % file)
 
-def emptyLines(file, keep, verbose):
-    emptyLineFound = False
-    emptyLines = 0
-    linesToDelete = []
+def emptyEntries(file, keep, verbose):
+    emptyEntryFound = False
+    emptyEntries = 0
+    entriesToDelete = []
 
     if verbose:
         print "--- Searching for empty entries"
-    subs = pysrt.open(file, encoding='utf-8')
-    lines = len(subs)
-    print "--- %s entries total" % lines
+    subs = pysrt.open(file, encoding='utf-8') # open sub with pysrt as utf-8
+    entries = len(subs) # count entries
+    print "--- %s entries total" % entries
 
-    for lineNo in range(0, lines):
-        subLine = "%s" % subs[lineNo]
-        rows = subLine.split('\n')
-        rowNo = 0
-        emptyLine = False
+    for entryNo in range(0, entries): # count entry numbers up to number of entries
+        subEntry = "%s" % subs[entryNo] # read single entry
+        lines = subEntry.split('\n') # split entry into lines
+        lineNo = 0 # set first line to 0
+        emptyEntry = False
 
-        for row in rows:
-            if rowNo == 2 and row == "&nbsp;":
-                emptyLine = True
-            if emptyLine and rowNo == 3 and row == "":
-                emptyLineFound = True
-                emptyLines += 1
-                linesToDelete.append(lineNo)
-            rowNo += 1
+        for row in lines: # read lines one by one
+            if lineNo == 2 and row == "&nbsp;": # if third line is &nbsp;
+                emptyEntry = True
+            if emptyEntry and lineNo == 3 and row == "": # if third line is &nbsp; and fourth line is empty
+                emptyEntryFound = True
+                emptyEntries += 1
+                entriesToDelete.append(entryNo) # add entry number to list
+            lineNo += 1
 
-    if emptyLineFound:
-        print "*** %s empty entries found" % emptyLines
+    if emptyEntryFound: # if empty entry is found
+        print "*** %s empty entries found" % emptyEntries
 
-        for lineNo in reversed(linesToDelete):
+        for entryNo in reversed(entriesToDelete): # run through entry numbers in reverse
             #print lineNo
-            del subs[lineNo]
+            del subs[entryNo] # delete entry
             
         if keep:
             if verbose:
                 print "--- Copying original file to %s.emptyEntries" % file
             copyfile(file, "%s.emptyEntries" % file)
             
-        subs.save(file, encoding='utf-8')
+        subs.save(file, encoding='utf-8') # save sub
 
-        subs = pysrt.open(file, encoding='utf-8')
-        lines = len(subs)
-        print "--- Now has %s entries" % lines
+        subs = pysrt.open(file, encoding='utf-8') # open new sub with pysrt
+        entries = len(subs) # count entries
+        print "--- Now has %s entries" % entries
+
+def numbering(file, keep, verbose):
+    wrongNumbering = False
+
+    if verbose:
+        print "--- Checking numbering"
+
+    subs = pysrt.open(file, encoding='utf-8') # open sub with pysrt as utf-8
+    entries = len(subs) # count entries
+
+    for entryNo in range(0, entries): # count entry numbers up to number of entries
+        subEntry = "%s" % subs[entryNo] # read single entry
+        lines = subEntry.split('\n') # split entry into lines
+        #print "Entry#%s: %s" % (entryNo +1, lines[0])
+        if entryNo + 1 != lines[0]:
+            wrongNumbering = True
+
+    if wrongNumbering:
+        print "*** Wrong numbering"
+        copyfile(file, "%s.wrongNumbering" % file)

@@ -79,7 +79,7 @@ else:
     print "Setting %s" % suffix.lstrip('.') # remove leading . if any
 
 ########################################## link ##########################################
-def partLink(recursive, searchPath, suffix):
+def partLink(recursive, searchPath, suffix): # finds out language of sub, inserts it, and creates link
     langSums = []
     num = 0
 
@@ -104,13 +104,13 @@ def partLink(recursive, searchPath, suffix):
 
     print "Languages found:"
     for lang in languages:
-        langSum = langSums.count(lang['code'])
-        if langSums.count(lang['code']) > 0:
+        langSum = langSums.count(lang['code']) # adds languages found
+        if langSums.count(lang['code']) > 0: # if language found, print it
             print "%s - %s:  %d" % (lang['code'], lang['name'].lower(), langSum)
     print "\n"
 
 ########################################## status ##########################################
-def partStatus():
+def partStatus(): # check accounts status at detectlanguage.com
     print "\nAvailable languages:"
     print "-------------------------------------------------------------------------------------"
     for language in languages:
@@ -118,7 +118,7 @@ def partStatus():
 
     print "\n%d available languages" % len(languages)
 
-    status = detectlanguage.user_status()
+    status = detectlanguage.user_status() # calls detectlanguage.com for account status
 
     print "\ndetectlanguage.com status for API-key: %s" % detectlanguage.configuration.api_key
     print "-------------------------------------------------------------------------------------"
@@ -130,7 +130,7 @@ def partStatus():
     print 'Bytes: %d / %d' % (status['bytes'], status['daily_bytes_limit'])
     
 ########################################## get ##########################################
-def partGet(searchPath):
+def partGet(searchPath): # search for and download subtitles for your preferred languages
     subDownloads = []
     num = 0
 
@@ -180,7 +180,7 @@ def partGet(searchPath):
     print "\n"
 
 ########################################## check ##########################################
-def partCheck(recursive, searchPath, suffix, findCode):
+def partCheck(recursive, searchPath, suffix, findCode): # check if language code set is correct
     langSums = []
     num = 0
 
@@ -236,7 +236,7 @@ def partCheck(recursive, searchPath, suffix, findCode):
     print "\n"
 
 ########################################## format ##########################################
-def partFormat(searchPath):
+def partFormat(searchPath): # check subtitles encoding and format
     noFormat = 0
     srtFormat = 0
     samiFormat = 0
@@ -250,29 +250,28 @@ def partFormat(searchPath):
                 if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
                     print "\n%s" % os.path.join(root, file)
 
-                    encoding = checkCoding(os.path.join(root, file))
-                    if encoding == "ISO-8859-2":
-                        print "*** Detected as %s. Probably is %s. Changing..." % (encoding, "ISO-8859-1")
-                        encoding = "ISO-8859-1"
+                    encoding = checkCoding(os.path.join(root, file)) # check encoding
                     if encoding == prefEncoding:
                         print "--- Encoded in %s" % encoding # correct encoding
                     else:
                         print "*** Encoded in %s" % encoding # wrong encoding
-                        changeEncoding(os.path.join(root, file), encoding, keep, verbose)
+                        changeEncoding(os.path.join(root, file), encoding, keep, verbose) # set to preferred encoding
 
-                    format = checkFormat(os.path.join(root, file), verbose)
+                    format = checkFormat(os.path.join(root, file), verbose) # check format
                     if not format:
                         print "*** Could not detect format"
                         noFormat += 1
                     elif format == "srt":
                         print "--- Srt format"
                         srtFormat += 1
-                        emptyLines(os.path.join(root, file), keep, verbose)
+                        emptyEntries(os.path.join(root, file), keep, verbose) # look for empty entries, if so delete them
+                        numbering(os.path.join(root, file), keep, verbose) # check if numbering is correct, if not correct it
                     elif format == "sami":
                         print "*** Sami format"
                         samiFormat += 1
-                        samiToSrt(os.path.join(root, file), keep, verbose)
-                        emptyLines(os.path.join(root, file), keep, verbose)
+                        samiToSrt(os.path.join(root, file), keep, verbose) # convert from SAMI to SRT
+                        emptyEntries(os.path.join(root, file), keep, verbose) # check for empty entries, if so delete them
+                        numbering(os.path.join(root, file), keep, verbose) # check if numbering is correct, if not correct it
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
@@ -282,29 +281,28 @@ def partFormat(searchPath):
             if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
                 print "\n%s" % file
 
-                encoding = checkCoding(os.path.join(searchPath, file))
-                if encoding == "ISO-8859-2":
-                    print "*** Detected as %s. Probably is %s. Changing..." % (encoding, "ISO-8859-1")
-                    encoding = "ISO-8859-1"
+                encoding = checkCoding(os.path.join(searchPath, file)) # check encoding
                 if encoding == prefEncoding:
                     print "--- Encoded in %s" % encoding # correct encoding
                 else:
                     print "*** Encoded in %s" % encoding # wrong encodin
-                    changeEncoding(os.path.join(searchPath, file), encoding, keep, verbose)
+                    changeEncoding(os.path.join(searchPath, file), encoding, keep, verbose) # set to preferred encoding
                     
-                format = checkFormat(os.path.join(searchPath, file), verbose)
+                format = checkFormat(os.path.join(searchPath, file), verbose) # check format
                 if not format:
                     print "*** Could not detect format"
                     noFormat += 1
                 elif format == "srt":
                     print "--- Srt format"
                     srtFormat += 1
-                    emptyLines(os.path.join(searchPath, file), keep, verbose)
+                    emptyEntries(os.path.join(searchPath, file), keep, verbose) # look for empty entries, if so delete them
+                    numbering(os.path.join(searchPath, file), keep, verbose) # check if numbering is correct, if not correct it
                 elif format == "sami":
                     print "*** Sami format"
                     samiFormat += 1
-                    samiToSrt(os.path.join(searchPath, file), keep, verbose)
-                    emptyLines(os.path.join(searchPath, file), keep, verbose)
+                    samiToSrt(os.path.join(searchPath, file), keep, verbose) # convert from SAMI to SRT
+                    emptyEntries(os.path.join(searchPath, file), keep, verbose) # look for empty entries, if so delete them
+                    numbering(os.path.join(searchPath, file), keep, verbose) # check if numbering is correct, if not correct it
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
 
@@ -333,10 +331,12 @@ elif doFormat and not doLink and not doGet and not doCheck and not doStatus: # c
 
 elif doLink and doGet and not doStatus and not doFormat: # get and link
     partGet(searchPath)
+    print "----------------------------------------------------------------"
     partLink(recursive, searchPath, suffix)
 
 elif doFormat and doLink and not doGet and not doStatus and not doCheck: # format and link
     partFormat(searchPath)
+    print "----------------------------------------------------------------"
     partLink(recursive, searchPath, suffix)
 
 elif doCheck and not doLink and not doGet and not doStatus and not doFormat: # check language codes manually
