@@ -516,6 +516,8 @@ def emptyEntries(file, keep, verbose):
         subs = pysrt.open(file, encoding='utf-8') # open new sub with pysrt
         entries = len(subs) # count entries
         print "--- Now has %s entries" % entries
+        
+    return emptyEntryFound
 
 def numbering(file, keep, verbose):
     wrongNumbering = False

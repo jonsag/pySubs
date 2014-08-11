@@ -240,7 +240,10 @@ def partFormat(searchPath): # check subtitles encoding and format
     noFormat = 0
     srtFormat = 0
     samiFormat = 0
+    wrongEncoding = 0
     wrongNumbering = 0
+    wrongFormat = 0
+    emptyEntry = 0
 
     if recursive: # scan directories recursively
         print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
@@ -257,6 +260,7 @@ def partFormat(searchPath): # check subtitles encoding and format
                     else:
                         print "*** Encoded in %s" % encoding # wrong encoding
                         changeEncoding(os.path.join(root, file), encoding, keep, verbose) # set to preferred encoding
+                        wrongEncoding += 1
 
                     format = checkFormat(os.path.join(root, file), verbose) # check format
                     if not format:
@@ -265,14 +269,18 @@ def partFormat(searchPath): # check subtitles encoding and format
                     elif format == "srt":
                         print "--- Srt format"
                         srtFormat += 1
-                        emptyEntries(os.path.join(root, file), keep, verbose) # look for empty entries, if so delete them
-                        numbering(os.path.join(root, file), keep, verbose) # check if numbering is correct, if not correct it
+                        if emptyEntries(os.path.join(root, file), keep, verbose): # look for empty entries, if so delete them
+                            emptyEntry += 1
+                        if numbering(os.path.join(root, file), keep, verbose): # check if numbering is correct, if not correct it
+                            wrongNumbering += 1
                     elif format == "sami":
                         print "*** Sami format"
                         samiFormat += 1
                         samiToSrt(os.path.join(root, file), keep, verbose) # convert from SAMI to SRT
-                        emptyEntries(os.path.join(root, file), keep, verbose) # check for empty entries, if so delete them
-                        numbering(os.path.join(root, file), keep, verbose) # check if numbering is correct, if not correct it
+                        if emptyEntries(os.path.join(root, file), keep, verbose): # check for empty entries, if so delete them
+                            emptyEntry += 1
+                        if numbering(os.path.join(root, file), keep, verbose): # check if numbering is correct, if not correct it
+                            wrongNumbering += 1
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
@@ -286,8 +294,9 @@ def partFormat(searchPath): # check subtitles encoding and format
                 if encoding == prefEncoding:
                     print "--- Encoded in %s" % encoding # correct encoding
                 else:
-                    print "*** Encoded in %s" % encoding # wrong encodin
+                    print "*** Encoded in %s" % encoding # wrong encoding
                     changeEncoding(os.path.join(searchPath, file), encoding, keep, verbose) # set to preferred encoding
+                    wrongEncoding += 1
                     
                 format = checkFormat(os.path.join(searchPath, file), verbose) # check format
                 if not format:
@@ -296,20 +305,23 @@ def partFormat(searchPath): # check subtitles encoding and format
                 elif format == "srt":
                     print "--- Srt format"
                     srtFormat += 1
-                    emptyEntries(os.path.join(searchPath, file), keep, verbose) # look for empty entries, if so delete them
-                    numbering(os.path.join(searchPath, file), keep, verbose) # check if numbering is correct, if not correct it
+                    if emptyEntries(os.path.join(searchPath, file), keep, verbose): # look for empty entries, if so delete them
+                        emptyEntry += 1
+                    if numbering(os.path.join(searchPath, file), keep, verbose): # check if numbering is correct, if not correct it
+                        wrongNumbering += 1
                 elif format == "sami":
                     print "*** Sami format"
                     samiFormat += 1
                     samiToSrt(os.path.join(searchPath, file), keep, verbose) # convert from SAMI to SRT
-                    emptyEntries(os.path.join(searchPath, file), keep, verbose) # look for empty entries, if so delete them
+                    if emptyEntries(os.path.join(searchPath, file), keep, verbose): # look for empty entries, if so delete them
+                        emptyEntry += 1
                     if numbering(os.path.join(searchPath, file), keep, verbose): # check if numbering is correct, if not correct it
                         wrongNumbering += 1
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
 
     if noFormat + srtFormat + samiFormat > 0:
-        print "Formats found:"
+        print "Formats:"
         if noFormat > 0:
             print "Not detected: %s" % noFormat
         if srtFormat > 0:
@@ -318,8 +330,16 @@ def partFormat(searchPath): # check subtitles encoding and format
             print "sami: %s" % samiFormat
         print "\n"
 
+    if wrongEncoding > 0:
+        print "Files with wrong encoding: %s" % wrongEncoding
+        print "\n"
+
+    if emptyEntry > 0:
+        print "Files with empty entries: %s" % emptyEntry
+        print "\n"
+
     if wrongNumbering > 0:
-        print "Wrong numbering: %s" % wrongNumbering
+        print "File with wrong numbering: %s" % wrongNumbering
         print "\n"
     
 
