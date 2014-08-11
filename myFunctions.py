@@ -480,7 +480,8 @@ def emptyEntries(file, keep, verbose):
         print "--- Searching for empty entries"
     subs = pysrt.open(file, encoding='utf-8') # open sub with pysrt as utf-8
     entries = len(subs) # count entries
-    print "--- %s entries total" % entries
+    if verbose:
+        print "--- %s entries total" % entries
 
     for entryNo in range(0, entries): # count entry numbers up to number of entries
         subEntry = "%s" % subs[entryNo] # read single entry
@@ -489,8 +490,9 @@ def emptyEntries(file, keep, verbose):
         emptyEntry = False
 
         for row in lines: # read lines one by one
-            if lineNo == 2 and row == "&nbsp;": # if third line is &nbsp;
-                emptyEntry = True
+            if lineNo == 2:
+                if row == "&nbsp;" or not row: # if third line is &nbsp; or empty
+                    emptyEntry = True
             if emptyEntry and lineNo == 3 and row == "": # if third line is &nbsp; and fourth line is empty
                 emptyEntryFound = True
                 emptyEntries += 1
@@ -527,10 +529,32 @@ def numbering(file, keep, verbose):
     for entryNo in range(0, entries): # count entry numbers up to number of entries
         subEntry = "%s" % subs[entryNo] # read single entry
         lines = subEntry.split('\n') # split entry into lines
-        #print "Entry#%s: %s" % (entryNo +1, lines[0])
-        if entryNo + 1 != lines[0]:
+        if entryNo + 1 != int(lines[0]): # entry number does not match real numbering
             wrongNumbering = True
+            print "*** Correcting numbering"
+            copyfile(file, "%s.wrongNumbering" % file)
+            break
 
     if wrongNumbering:
-        print "*** Wrong numbering"
-        copyfile(file, "%s.wrongNumbering" % file)
+        targetFile = codecs.open(file, "w", prefEncoding)
+        subs = pysrt.open("%s.wrongNumbering" % file, encoding='utf-8') # open sub with pysrt as utf-8
+        entries = len(subs) # count entries
+        for entryNo in range(0, entries): # count entry numbers up to number of entries
+            subEntry = "%s" % subs[entryNo] # read single entry
+            lines = subEntry.split('\n') # split entry into lines
+            noLines = len(lines) # number of lines in each entry
+            for line in range(0, noLines):
+                if line == 0:
+                    targetFile.write("%s\n" % str(entryNo +1))
+                    #print entryNo + 1
+                else:
+                    targetFile.write("%s\n" % lines[line])
+                    #print lines[line]
+        targetFile.close()
+
+        if not keep:
+            if verbose:
+                print "--- Deleting %s.wrongNumbering" % file
+            os.remove("%s.wrongNumbering" % file)
+
+    return wrongNumbering

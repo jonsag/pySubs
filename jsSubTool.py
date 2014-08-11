@@ -240,6 +240,7 @@ def partFormat(searchPath): # check subtitles encoding and format
     noFormat = 0
     srtFormat = 0
     samiFormat = 0
+    wrongNumbering = 0
 
     if recursive: # scan directories recursively
         print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
@@ -302,19 +303,25 @@ def partFormat(searchPath): # check subtitles encoding and format
                     samiFormat += 1
                     samiToSrt(os.path.join(searchPath, file), keep, verbose) # convert from SAMI to SRT
                     emptyEntries(os.path.join(searchPath, file), keep, verbose) # look for empty entries, if so delete them
-                    numbering(os.path.join(searchPath, file), keep, verbose) # check if numbering is correct, if not correct it
+                    if numbering(os.path.join(searchPath, file), keep, verbose): # check if numbering is correct, if not correct it
+                        wrongNumbering += 1
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
 
-    print "Formats found:"
-    if noFormat > 0:
-        print "Not detected: %s" % noFormat
-    if srtFormat > 0:
-        print "srt: %s" % srtFormat
-    if samiFormat > 0:
-        print "sami: %s" % samiFormat
-    print "\n"
+    if noFormat + srtFormat + samiFormat > 0:
+        print "Formats found:"
+        if noFormat > 0:
+            print "Not detected: %s" % noFormat
+        if srtFormat > 0:
+            print "srt: %s" % srtFormat
+        if samiFormat > 0:
+            print "sami: %s" % samiFormat
+        print "\n"
 
+    if wrongNumbering > 0:
+        print "Wrong numbering: %s" % wrongNumbering
+        print "\n"
+    
 
 ########################################## choose what to run ##########################################
 if doLink and not doStatus and not doGet and not doCheck and not doFormat: # find language in subs and create links
