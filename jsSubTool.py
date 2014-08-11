@@ -254,7 +254,7 @@ def partFormat(searchPath): # check subtitles encoding and format
                 if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
                     print "\n%s" % os.path.join(root, file)
 
-                    encoding = checkCoding(os.path.join(root, file)) # check encoding
+                    encoding = checkCoding(os.path.join(root, file), verbose) # check encoding
                     if encoding == prefEncoding:
                         print "--- Encoded in %s" % encoding # correct encoding
                     else:
@@ -290,7 +290,7 @@ def partFormat(searchPath): # check subtitles encoding and format
             if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
                 print "\n%s" % file
 
-                encoding = checkCoding(os.path.join(searchPath, file)) # check encoding
+                encoding = checkCoding(os.path.join(searchPath, file), verbose) # check encoding
                 if encoding == prefEncoding:
                     print "--- Encoded in %s" % encoding # correct encoding
                 else:

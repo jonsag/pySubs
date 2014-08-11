@@ -400,11 +400,13 @@ def compareCodes(existingCode, checkedCode, file):
             else:
                 print "\n    Not a valid choice"
 
-def checkCoding(file):
+def checkCoding(file, verbose):
     myFile = open(file) # open sub
     soup = BeautifulSoup(myFile) # read sub into BeautifulSoup
     myFile.close() # close sub
     encoding = soup.originalEncoding # let soup detect encoding
+    if verbose:
+        print "--- BeautifulSoup says: %s" % encoding
     if encoding == "ISO-8859-2":
         print "*** Detected ISO-8859-2. Assuming it's ISO-8859-1"
         encoding = "ISO-8859-1"
@@ -438,18 +440,19 @@ def changeEncoding(file, encoding, keep, verbose):
         os.remove("%s.%s" % (file, encoding))
 
 def checkFormat(file, verbose):
+    format = ""
     if verbose:
         print "--- Checking subtitle format"
     capsFile = open(file) # open sub
     caps = capsFile.read() # read sub
     reader = detect_format(caps) # detect format with pycaption
+    if verbose:
+        print "--- pycaption says: %s" % reader
     if reader:
         if "srt" in str(reader):
             format = "srt"
         elif "sami" in str(reader):
             format = "sami"
-        else:
-            format = ""
     capsFile.close() # close sub
     return format
 
