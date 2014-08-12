@@ -4,3 +4,4 @@ Requirements:
   Python modules:
     * pysrt
     * pycaption
+    * subliminal
