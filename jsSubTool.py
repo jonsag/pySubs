@@ -240,6 +240,7 @@ def partFormat(searchPath): # check subtitles encoding and format
     noFormat = 0
     srtFormat = 0
     samiFormat = 0
+    dfxpFormat = 0
     wrongEncoding = 0
     wrongNumbering = 0
     wrongFormat = 0
@@ -281,6 +282,10 @@ def partFormat(searchPath): # check subtitles encoding and format
                             emptyEntry += 1
                         if numbering(os.path.join(root, file), keep, verbose): # check if numbering is correct, if not correct it
                             wrongNumbering += 1
+                    elif format == "dfxp":
+                        print "*** Dfxp format"
+                        dfxpFormat += 1
+                        dfxpToSrt(os.path.join(root, file), keep, verbose) # convert from DFXP to SRT
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
@@ -317,6 +322,10 @@ def partFormat(searchPath): # check subtitles encoding and format
                         emptyEntry += 1
                     if numbering(os.path.join(searchPath, file), keep, verbose): # check if numbering is correct, if not correct it
                         wrongNumbering += 1
+                elif format == "dfxp":
+                    print "*** Dfxp format"
+                    dfxpFormat += 1
+                    dfxpToSrt(os.path.join(searchPath, file), keep, verbose) # convert from DFXP to SRT
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
 
@@ -328,6 +337,8 @@ def partFormat(searchPath): # check subtitles encoding and format
             print "srt: %s" % srtFormat
         if samiFormat > 0:
             print "sami: %s" % samiFormat
+        if dfxpFormat > 0:
+            print "dfxp: %s" % dfxpFormat
         print "\n"
 
     if wrongEncoding > 0:

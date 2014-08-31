@@ -10,7 +10,7 @@ from string import digits
 from collections import namedtuple
 from subprocess import call
 from BeautifulSoup import BeautifulSoup, UnicodeDammit
-from pycaption import detect_format, SRTReader, SRTWriter, SAMIReader, SAMIWriter, CaptionConverter
+from pycaption import detect_format, SRTReader, SRTWriter, SAMIReader, DFXPReader, CaptionConverter
 from shutil import copyfile
 
 # libraries for subliminal
@@ -453,6 +453,8 @@ def checkFormat(file, verbose):
             format = "srt"
         elif "sami" in str(reader):
             format = "sami"
+        elif "dfxp" in str(reader):
+            format = "dfxp"
     capsFile.close() # close sub
     return format
 
@@ -473,6 +475,24 @@ def samiToSrt(file, keep, verbose):
         if verbose:
             print "--- Deleting temporary file %s.sami" % file
         os.remove("%s.sami" % file)
+
+def dfxpToSrt(file, keep, verbose):
+    if verbose:
+        print "--- Renaming to %s.dfxp" % file
+    os.rename(file, "%s.dfxp" % file)
+    print "--- Converting to srt"
+    sourceFile = open("%s.dfxp" % file) # open copy as source
+    caps = sourceFile.read() # read source
+    converter = CaptionConverter() # set pycaptions converter
+    converter.read(caps, DFXPReader()) # read sami
+    with open(file, "w") as targetFile: # open target
+        targetFile.write(converter.write(SRTWriter())) # write target
+    sourceFile.close() # close source
+    targetFile.close() # close target
+    if not keep:
+        if verbose:
+            print "--- Deleting temporary file %s.dfxp" % file
+        os.remove("%s.dfxp" % file)
 
 def emptyEntries(file, keep, verbose):
     emptyEntryFound = False
