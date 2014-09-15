@@ -2,22 +2,22 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import re, sys, ConfigParser, os, detectlanguage, codecs, codecs, pysrt
+import re, sys, ConfigParser, os, detectlanguage, codecs, pysrt
 
 from itertools import islice
 from sys import exit
-from string import digits
-from collections import namedtuple
+#from string import digits
+#from collections import namedtuple
 from subprocess import call
-from BeautifulSoup import BeautifulSoup, UnicodeDammit
-from pycaption import detect_format, SRTReader, SRTWriter, SAMIReader, DFXPReader, CaptionConverter
+from BeautifulSoup import BeautifulSoup #, UnicodeDammit
+from pycaption import detect_format, SRTWriter, SAMIReader, DFXPReader, CaptionConverter # SRTReader
 from shutil import copyfile
 
 # libraries for subliminal
 #from __future__ import unicode_literals  # python 2 only
-from babelfish import Language
-from datetime import timedelta
-import subliminal
+#from babelfish import Language
+#from datetime import timedelta
+#import subliminal
 
 # starting up some variables
 #num = 0
@@ -353,7 +353,7 @@ def downloadSub(file, lang, path):
     else:
         print "--- Downloaded %s subtitles" % langName(lang).lower()
         subDownloads = foundLang(lang) # sending language code to be added
-        subName = "%s.%s.%s" % (os.path.splitext(file)[0], lang, "srt")
+        #subName = "%s.%s.%s" % (os.path.splitext(file)[0], lang, "srt")
     os.chdir(origWD) # change working directory back
     return subDownloads
 
