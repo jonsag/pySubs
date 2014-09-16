@@ -10,13 +10,13 @@ from myFunctions import *
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'p:rs:ldgc:fkhv' , ['path=', 'recursive', 'suffix=', 'link', 'detectlang', 'get', 'check=', 'format', 'keep', 'help', 'verbose'])
+    myopts, args = getopt.getopt(sys.argv[1:],'p:re:ldgc:fskhv' , ['path=', 'recursive', 'extension=', 'link', 'detectlang', 'get', 'check=', 'format', 'search', 'keep', 'help', 'verbose'])
 
 except getopt.GetoptError as e:
     onError(1, str(e))
 
 recursive = False
-suffix = ".srt"
+extension = ".srt"
 searchPath = os.path.abspath(os.getcwd())
 doLink = False
 doStatus = False
@@ -35,8 +35,8 @@ for option, argument in myopts:
         searchPath = os.path.abspath(argument)
     elif option in ('-r', '--recursive'):
         recursive = True
-    elif option in ('-s', '--suffix'):
-        suffix = argument
+    elif option in ('-e', '--extension'):
+        extension = argument
     elif option in ('-l', '--link'):
         doLink = True
     elif option in ('-d', '--detectlang'):
@@ -72,35 +72,35 @@ else:
     print "\nNo path given."
     print "Using current dir %s" % searchPath
 
-if suffix: # argument -s --suffix passed
-    suffix = ".%s" % suffix.lstrip('.') # remove leading . if any
+if extension: # argument -e --extension passed
+    extension = ".%s" % extension.lstrip('.') # remove leading . if any
 else:
-    print "\nNo suffix given!"
-    print "Setting %s" % suffix.lstrip('.') # remove leading . if any
+    print "\nNo extension given!"
+    print "Setting %s" % extension.lstrip('.') # remove leading . if any
 
 ########################################## link ##########################################
-def partLink(recursive, searchPath, suffix): # finds out language of sub, inserts it, and creates link
+def partLink(recursive, searchPath, extension): # finds out language of sub, inserts it, and creates link
     langSums = []
     num = 0
 
     if recursive: # scan directories recursively
-        print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
+        print "\nSearching %s recursively for files ending with %s" % (searchPath, extension)
         for root, dirs, files in os.walk(searchPath):
             for myFile in files:
-                if isFile(os.path.join(root, myFile), suffix, verbose): # check if myFile matches criteria
+                if isFile(os.path.join(root, myFile), extension, verbose): # check if myFile matches criteria
                     print "\n%s" % os.path.join(root, myFile)
                     langSums = fileFound(os.path.join(root, myFile), langSums, verbose) # go ahead with the file
                     num += 1
 
     else: # scan single directory
-        print "\nSearching %s for files ending with %s" % (searchPath, suffix)
+        print "\nSearching %s for files ending with %s" % (searchPath, extension)
         for myFile in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, myFile), suffix, verbose): # check if myFile matches criteria
+            if isFile(os.path.join(searchPath, myFile), extension, verbose): # check if myFile matches criteria
                 print "\n%s" % myFile
                 langSums = fileFound(os.path.join(searchPath, myFile), langSums, verbose) # go ahead with the file
                 num += 1
 
-    print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, num)
+    print "\nNumber of %s files in %s: %d\n" % (extension, searchPath, num)
 
     print "Languages found:"
     for lang in languages:
@@ -139,8 +139,8 @@ def partGet(searchPath): # search for and download subtitles for your preferred 
         for root, dirs, files in os.walk(searchPath):
             for myFile in files:
                 videoFound = False
-                for suffix in videoSuffixes:
-                    if isVideo(os.path.join(str(root), myFile), suffix): # check if myFile matches any of the video suffixes
+                for extension in videoExtensions:
+                    if isVideo(os.path.join(str(root), myFile), extension): # check if myFile matches any of the video extensions
                         print "\n%s" % os.path.join(str(root), myFile)
                         num += 1
                         videoFound = True
@@ -151,8 +151,8 @@ def partGet(searchPath): # search for and download subtitles for your preferred 
         print "\nSearching %s for video files" % searchPath
         for myFile in os.listdir(searchPath):
             videoFound = False
-            for suffix in videoSuffixes:
-                if isVideo(myFile, suffix): # check if myFile matches any of the video suffixes
+            for extension in videoExtensions:
+                if isVideo(myFile, extension): # check if myFile matches any of the video extensions
                     print "\n%s" % myFile
                     num += 1
                     videoFound = True
@@ -180,17 +180,17 @@ def partGet(searchPath): # search for and download subtitles for your preferred 
     print "\n"
 
 ########################################## check ##########################################
-def partCheck(recursive, searchPath, suffix, findCode): # check if language code set is correct
+def partCheck(recursive, searchPath, extension, findCode): # check if language code set is correct
     langSums = []
     num = 0
 
     if recursive: # scan directories recursively
-        print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
+        print "\nSearching %s recursively for files ending with %s" % (searchPath, extension)
         if findCode:
             print "with language code %s" % findCode
         for root, dirs, files in os.walk(searchPath):
             for myFile in files:
-                if isFile(os.path.join(root, myFile), suffix, verbose): # check if myFile matches criteria
+                if isFile(os.path.join(root, myFile), extension, verbose): # check if myFile matches criteria
                     existingCode = hasLangCode(os.path.join(searchPath, myFile))
                     if existingCode:
                         if findCode:
@@ -211,11 +211,11 @@ def partCheck(recursive, searchPath, suffix, findCode): # check if language code
                                 print "*** Has no language code"
   
     else: # scan single directory
-        print "\nSearching %s for files ending with %s" % (searchPath, suffix)
+        print "\nSearching %s for files ending with %s" % (searchPath, extension)
         if findCode:
             print "with language code %s" % findCode
         for myFile in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, myFile), suffix, verbose): # check if myFile matches criteria
+            if isFile(os.path.join(searchPath, myFile), extension, verbose): # check if myFile matches criteria
                 print "\n%s" % myFile
                 existingCode = hasLangCode(os.path.join(searchPath, myFile))
                 if existingCode:
@@ -226,7 +226,7 @@ def partCheck(recursive, searchPath, suffix, findCode): # check if language code
                 else:
                     print "*** Has no language code"
 
-    print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, num)
+    print "\nNumber of %s files in %s: %d\n" % (extension, searchPath, num)
 
     print "Languages found:"
     for lang in languages:
@@ -247,12 +247,12 @@ def partFormat(searchPath): # check subtitles encoding and format
     emptyEntry = 0
 
     if recursive: # scan directories recursively
-        print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
+        print "\nSearching %s recursively for files ending with %s" % (searchPath, extension)
         if findCode:
             print "with language code %s" % findCode
         for root, dirs, files in os.walk(searchPath):
             for myFile in files:
-                if isFile(os.path.join(root, myFile), suffix, verbose): # check if myFile matches criteria
+                if isFile(os.path.join(root, myFile), extension, verbose): # check if myFile matches criteria
                     print "\n%s" % os.path.join(root, myFile)
 
                     encoding = checkCoding(os.path.join(root, myFile), verbose) # check encoding
@@ -288,11 +288,11 @@ def partFormat(searchPath): # check subtitles encoding and format
                         dfxpToSrt(os.path.join(root, myFile), keep, verbose) # convert from DFXP to SRT
 
     else: # scan single directory
-        print "\nSearching %s for files ending with %s" % (searchPath, suffix)
+        print "\nSearching %s for files ending with %s" % (searchPath, extension)
         if findCode:
             print "with language code %s" % findCode
         for myFile in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, myFile), suffix, verbose): # check if myFile matches criteria
+            if isFile(os.path.join(searchPath, myFile), extension, verbose): # check if myFile matches criteria
                 print "\n%s" % myFile
 
                 encoding = checkCoding(os.path.join(searchPath, myFile), verbose) # check encoding
@@ -327,7 +327,7 @@ def partFormat(searchPath): # check subtitles encoding and format
                     dfxpFormat += 1
                     dfxpToSrt(os.path.join(searchPath, myFile), keep, verbose) # convert from DFXP to SRT
 
-    print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
+    print "\nNumber of %s files in %s: %d\n" % (extension, searchPath, noFormat + srtFormat + samiFormat)
 
     if noFormat + srtFormat + samiFormat > 0:
         print "Formats:"
@@ -356,7 +356,7 @@ def partFormat(searchPath): # check subtitles encoding and format
 
 ########################################## choose what to run ##########################################
 if doLink and not doStatus and not doGet and not doCheck and not doFormat: # find language in subs and create links
-    partLink(recursive, searchPath, suffix)
+    partLink(recursive, searchPath, extension)
 
 elif doStatus and not doLink and not doGet and not doCheck and not doFormat: # status at detectlanguage.com
     partStatus()
@@ -370,15 +370,15 @@ elif doFormat and not doLink and not doGet and not doCheck and not doStatus: # c
 elif doLink and doGet and not doStatus and not doFormat: # get and link
     partGet(searchPath)
     print "----------------------------------------------------------------"
-    partLink(recursive, searchPath, suffix)
+    partLink(recursive, searchPath, extension)
 
 elif doFormat and doLink and not doGet and not doStatus and not doCheck: # format and link
     partFormat(searchPath)
     print "----------------------------------------------------------------"
-    partLink(recursive, searchPath, suffix)
+    partLink(recursive, searchPath, extension)
 
 elif doCheck and not doLink and not doGet and not doStatus and not doFormat: # check language codes manually
-    partCheck(recursive, searchPath, suffix, findCode)
+    partCheck(recursive, searchPath, extension, findCode)
 
 else:
     onError(5, 5)

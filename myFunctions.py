@@ -23,7 +23,7 @@ from shutil import copyfile
 #num = 0
 searchPath = ""
 searchPathRecursive = ""
-suffix = ""
+extension = ""
 langSums = []
 subDownloads = []
 
@@ -70,16 +70,16 @@ def onError(errorCode, extra):
 def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
-    print "%s -l [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
+    print "%s -l [-p <path>] [-r] [-e <extension>]" % sys.argv[0]
     print "          Find files, set language code if none, and create symbolic 'l'ink to them without language code"
-    print "          Options: Set -s <suffix> to set 's'uffix to search for"
+    print "          Options: Set -e <extension> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
     print "     OR\n"
     print "%s -d" % sys.argv[0]
     print "          Get available languages from 'd'etectlanguage.com, and your account status at the same place"
     print "     OR\n"
-    print "%s -g [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
+    print "%s -g [-p <path>] [-r] [-e <extension>]" % sys.argv[0]
     print "          Search video files, check if there are any srt subtitle files with language code in the name"
     print "          If not try to find and 'g'et subtitles in any of your preferred languages"
     print "          Options: Set -r to search 'r'ecursively"
@@ -90,14 +90,21 @@ def usage(exitCode):
     print "          Arguments: all checks all files with languagecode set"
     print "                     pref checks all files with any of your preferred languages"
     print "                     <code>, give a valid language code"
-    print "          Options: Set -s <suffix> to set 's'uffix to search for"
+    print "          Options: Set -e <extension> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
     print "     OR\n"
-    print "%s -f [-k] [-p <path>] [-r] [-s <suffix>]" % sys.argv[0]
+    print "%s -f [-k] [-p <path>] [-r] [-e <extension>]" % sys.argv[0]
     print "          Find subtitles, check 'f'ormat, and convert to UTF8, and convert to srt"
     print "          Options: Set -k to 'k'eep temporary file"
-    print "                   Set -s <suffix> to set 's'uffix to search for"
+    print "                   Set -e <extension> to set 's'uffix to search for"
+    print "                   Set -r to search 'r'ecursively"
+    print "                   Set -p <path> to set other 'p'ath than current"
+    print "     OR\n"
+    print "%s -s [list|convert] [-p <path>] [-r]" % sys.argv[0]
+    print "          Arguments: list only lists subtitles files"
+    print "                     convert also converts the to srt-format if possible"
+    print "          Options: 'S'earch for posibble subtitles files"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
     print "%s -h" % sys.argv[0]
@@ -108,31 +115,31 @@ def usage(exitCode):
 ##### mainly for downloadSubs #####
 dbmCacheFile = "%s/%s/cachefile.dbm" % (os.path.expanduser("~"), config.get('video','dbmCacheFile')) # get location for dbm cache file
 
-videoSuffixes = (config.get('video','videoSuffixes')).split(',') # load video suffixes
+videoExtensions = (config.get('video','videoExtensions')).split(',') # load video extensions
 
-def isFile(myFile, suffix, verbose): # returns True if suffix is correct, is a file, is not a link and is not empty
+def isFile(myFile, extension, verbose): # returns True if extension is correct, is a file, is not a link and is not empty
     result = False # set default result False
     #if verbose:
     #    print "--- Checking if %s matches our criteria" % myFile
     fileExtension = os.path.splitext(myFile)[1] # get extension only with the leading punctuation
-    if fileExtension.lower() == suffix and os.path.isfile(myFile) and not os.path.islink(myFile): # file ends with correct suffix, is a file and is not a link
+    if fileExtension.lower() == extension and os.path.isfile(myFile) and not os.path.islink(myFile): # file ends with correct extension, is a file and is not a link
         if fileEmpty(myFile): # myFile is empty
             print "\n%s" % myFile
             print "*** File is empty. Deleting it..."
             os.remove(myFile)
         else:
-            result = True # myFile ends with correct suffix, is a file, is not a link and is empty
+            result = True # myFile ends with correct extension, is a file, is not a link and is empty
     return result
 
 def hasLangCode(myFile): # returns the language code present, if there is one. Otherwise returns empty
     result = "" # default return code
-    fileName = os.path.splitext(myFile)[0] # myFile name without punctuation and suffix
+    fileName = os.path.splitext(myFile)[0] # myFile name without punctuation and extension
     for language in languages:
-        if '.%s' % language['code'] == os.path.splitext(fileName)[1]: # adds punctuation before code, and compares to suffix in stripped file name. If same, returns code
+        if '.%s' % language['code'] == os.path.splitext(fileName)[1]: # adds punctuation before code, and compares to extension in stripped file name. If same, returns code
             result = language # set detected language code to result
     return result # return detected language code
 
-def fileFound(myFile, langSums, verbose): # runs on every file that matches suffix, is not a link and is not empty
+def fileFound(myFile, langSums, verbose): # runs on every file that matches extension, is not a link and is not empty
     acceptUnreliable = config.get('variables','acceptUnreliable') # True if we accept unreliable as language code
     codePresent = hasLangCode(myFile) # check if the file already has a language code. Returns code if there is one, otherwise empty
 
@@ -186,7 +193,7 @@ def fileFound(myFile, langSums, verbose): # runs on every file that matches suff
 
 def makeLink(myFile): # create a link to file that has language code
     print "--- Creating link for %s" % myFile
-    linkName = "%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], os.path.splitext(myFile)[1]) # remove suffix, remove another suffix and add first suffix again
+    linkName = "%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], os.path.splitext(myFile)[1]) # remove extension, remove another extension and add first extension again
     if os.path.isfile(linkName) and not os.path.islink(linkName): # the new link would overwrite a file
         print "*** %s is a file. Skipping" % linkName
     else:
@@ -199,7 +206,7 @@ def makeLink(myFile): # create a link to file that has language code
 
 def addLangCode(myFile, langCode): # adds language code to file name
     print "--- Adding language code to %s" % myFile
-    # takes filename without suffix, adds punctuation and language code and adds the old suffix
+    # takes filename without extension, adds punctuation and language code and adds the old extension
     newName = "%s.%s%s" % (os.path.splitext(myFile)[0], langCode, os.path.splitext(myFile)[1])
     if os.path.isfile(newName): # new file name exists as a file
         print "*** %s already exist. Skipping..." % newName
@@ -271,7 +278,7 @@ def checkLang(myFile, verbose): # checks file for language and returns language 
     return langCode
 
 def changeCode(myFile, newCode): # change language code to newCode
-    newName = "%s.%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], newCode, os.path.splitext(myFile)[1]) # file name without punctuation and last two suffixes
+    newName = "%s.%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], newCode, os.path.splitext(myFile)[1]) # file name without punctuation and last two extensions
     print "--- Renaming to %s" % newName
     os.rename(myFile, newName) # rename the file
     return newName
@@ -321,10 +328,10 @@ def convertText(head):
 
         return text
 
-def isVideo(myFile, suffix):
+def isVideo(myFile, extension):
     result = False
     fileExtension = os.path.splitext(myFile)[1]
-    if fileExtension.lower() == ".%s" % suffix:
+    if fileExtension.lower() == ".%s" % extension:
         result = True
     return result
 
