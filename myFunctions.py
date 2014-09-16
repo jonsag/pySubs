@@ -110,40 +110,40 @@ dbmCacheFile = "%s/%s/cachefile.dbm" % (os.path.expanduser("~"), config.get('vid
 
 videoSuffixes = (config.get('video','videoSuffixes')).split(',') # load video suffixes
 
-def isFile(file, suffix, verbose): # returns True if suffix is correct, is a file, is not a link and is not empty
+def isFile(myFile, suffix, verbose): # returns True if suffix is correct, is a file, is not a link and is not empty
     result = False # set default result False
     #if verbose:
-    #    print "--- Checking if %s matches our criteria" % file
-    fileExtension = os.path.splitext(file)[1] # get extension only with the leading punctuation
-    if fileExtension.lower() == suffix and os.path.isfile(file) and not os.path.islink(file): # file ends with correct suffix, is a file and is not a link
-        if fileEmpty(file): # file is empty
-            print "\n%s" % file
+    #    print "--- Checking if %s matches our criteria" % myFile
+    fileExtension = os.path.splitext(myFile)[1] # get extension only with the leading punctuation
+    if fileExtension.lower() == suffix and os.path.isfile(myFile) and not os.path.islink(myFile): # file ends with correct suffix, is a file and is not a link
+        if fileEmpty(myFile): # myFile is empty
+            print "\n%s" % myFile
             print "*** File is empty. Deleting it..."
-            os.remove(file)
+            os.remove(myFile)
         else:
-            result = True # file ends with correct suffix, is a file, is not a link and is empty
+            result = True # myFile ends with correct suffix, is a file, is not a link and is empty
     return result
 
-def hasLangCode(file): # returns the language code present, if there is one. Otherwise returns empty
+def hasLangCode(myFile): # returns the language code present, if there is one. Otherwise returns empty
     result = "" # default return code
-    fileName = os.path.splitext(file)[0] # file name without punctuation and suffix
+    fileName = os.path.splitext(myFile)[0] # myFile name without punctuation and suffix
     for language in languages:
         if '.%s' % language['code'] == os.path.splitext(fileName)[1]: # adds punctuation before code, and compares to suffix in stripped file name. If same, returns code
             result = language # set detected language code to result
     return result # return detected language code
 
-def fileFound(file, langSums, verbose): # runs on every file that matches suffix, is not a link and is not empty
+def fileFound(myFile, langSums, verbose): # runs on every file that matches suffix, is not a link and is not empty
     acceptUnreliable = config.get('variables','acceptUnreliable') # True if we accept unreliable as language code
-    codePresent = hasLangCode(file) # check if the file already has a language code. Returns code if there is one, otherwise empty
+    codePresent = hasLangCode(myFile) # check if the file already has a language code. Returns code if there is one, otherwise empty
 
     if not codePresent: # file name has no language code
-        checkCode = checkLang(file, verbose) # determine what language file has. Returns language code
+        checkCode = checkLang(myFile, verbose) # determine what language file has. Returns language code
         if acceptUnreliable: # we accept "unreliable" as language code
-            addLangCode(file, checkCode) # add language code to file name
+            addLangCode(myFile, checkCode) # add language code to file name
             langSums = foundLang(checkCode) # sending language code to be added if code was not present and we accept "xx" as language code
         else: # we don't accept "xx" as language code
             if checkCode != "xx": # if the language code is reliable
-                addLangCode(file, checkCode) # add language code to file name
+                addLangCode(myFile, checkCode) # add language code to file name
             else:
                 print "*** Can't determine if language code present is correct. Doing nothing further"
 
@@ -151,23 +151,23 @@ def fileFound(file, langSums, verbose): # runs on every file that matches suffix
         print "*** Already has language code %s - %s" % (codePresent['code'], codePresent['name'].lower())
         langSums = foundLang(codePresent['code']) # sending language code to be added if language code was present
 
-        if hasLink(file) and codePresent != "xx": # file has link and language code is not xx
+        if hasLink(myFile) and codePresent != "xx": # file has link and language code is not xx
             print "*** Already has link"
             if codePresent['code'] == prefLangs[0]: # language code for this file is your first prefered one
                 print "--- Language code for this file is %s. Creating new link anyway" % prefLangs[0]
-                makeLink(file) # create a link to the file
+                makeLink(myFile) # create a link to the file
 
         elif codePresent == "xx": # language code is "xx"
-            checkCode = checkLang(file, verbose) # determine what language file has at detectlanguage.com. Returns language code
+            checkCode = checkLang(myFile, verbose) # determine what language file has at detectlanguage.com. Returns language code
 
             if acceptUnreliable: # we accept "xx" as language code
                 if checkCode == codePresent['code']: # correct language code already set
                     print "--- Present language code seems correct!"
-                    makeLink(file) # create a link to the file
+                    makeLink(myFile) # create a link to the file
                 else: # wrong code set to file
                     print "*** Present language code don't seem correct. Changing %s to %s" % (codePresent['code'], checkCode) 
-                    file = changeCode(file, checkCode) # set correct language code to file, and get the new file name
-                    makeLink(file) # create a link to the file
+                    myFile = changeCode(myFile, checkCode) # set correct language code to myFile, and get the new file name
+                    makeLink(myFile) # create a link to the file
             else: # we don't accept "xx" as language code
                 if checkCode == "xx": # language result is unknown
                     print "*** Can't determine if language code present is correct. Doing nothing further"
@@ -176,17 +176,17 @@ def fileFound(file, langSums, verbose): # runs on every file that matches suffix
                         print "--- Present language code seems correct!"
                     else: # wrong code set to file
                         print "*** Present language code don't seem correct. Changing %s to %s" % (codePresent['code'], checkCode)
-                        file = changeCode(file, checkCode) # set correct language code to file, and get the new file name
-                        makeLink(file) # create a link to the file, if it already has correct language code
+                        myFile = changeCode(myFile, checkCode) # set correct language code to myFile, and get the new file name
+                        makeLink(myFile) # create a link to the file, if it already has correct language code
 
         else:
-            makeLink(file) # create a link to the file
+            makeLink(myFile) # create a link to the file
             #langSums = foundLang(codePresent['code']) # sending language code to be added
     return langSums
 
-def makeLink(file): # create a link to file that has language code
-    print "--- Creating link for %s" % file
-    linkName = "%s%s" % (os.path.splitext(os.path.splitext(file)[0])[0], os.path.splitext(file)[1]) # remove suffix, remove another suffix and add first suffix again
+def makeLink(myFile): # create a link to file that has language code
+    print "--- Creating link for %s" % myFile
+    linkName = "%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], os.path.splitext(myFile)[1]) # remove suffix, remove another suffix and add first suffix again
     if os.path.isfile(linkName) and not os.path.islink(linkName): # the new link would overwrite a file
         print "*** %s is a file. Skipping" % linkName
     else:
@@ -194,21 +194,21 @@ def makeLink(file): # create a link to file that has language code
             print "*** %s exists as a link. Removing it..." % linkName
             os.unlink(linkName) # delete old link
         print "--- Creating link %s" % linkName
-        os.symlink(os.path.basename(file), linkName) # create a link pointing to the file with link name without language code
+        os.symlink(os.path.basename(myFile), linkName) # create a link pointing to the file with link name without language code
     return
 
-def addLangCode(file, langCode): # adds language code to file name
-    print "--- Adding language code to %s" % file
+def addLangCode(myFile, langCode): # adds language code to file name
+    print "--- Adding language code to %s" % myFile
     # takes filename without suffix, adds punctuation and language code and adds the old suffix
-    newName = "%s.%s%s" % (os.path.splitext(file)[0], langCode, os.path.splitext(file)[1])
+    newName = "%s.%s%s" % (os.path.splitext(myFile)[0], langCode, os.path.splitext(myFile)[1])
     if os.path.isfile(newName): # new file name exists as a file
         print "*** %s already exist. Skipping..." % newName
     else:
         print "--- Renaming to %s" % newName
-        os.rename(file, newName) # rename the file
+        os.rename(myFile, newName) # rename the file
         makeLink(newName) # make link to file
 
-def checkLang(file, verbose): # checks file for language and returns language code, or if is doubtful returns "xx"
+def checkLang(myFile, verbose): # checks file for language and returns language code, or if is doubtful returns "xx"
     status = detectlanguage.user_status() # get status for the account at detectlanguage.com
     tryNumber = 0 # starting up counter
     finished = False
@@ -217,17 +217,17 @@ def checkLang(file, verbose): # checks file for language and returns language co
         print "    Run %s -d to see status" % sys.argv[0]
         print "    Quitting...\n"
         exit(7)
-    with open(file) as myfile:
-        fileLines = sum(1 for line in myfile) # number of lines in file
-    myfile.close() # close file
+    with open(myFile) as theFile:
+        fileLines = sum(1 for line in theFile) # number of lines in file
+    theFile.close() # close file
     while True:
         if tryNumber * detectRows >= fileLines:
             print "*** File only has %d lines. No more lines to send. Accepting answer" % fileLines
             break
 
-        with open(file) as myFile: # open file
-            head = list(islice(myFile, tryNumber * detectRows, (tryNumber + 1) * detectRows)) # select rows from file
-        myFile.close() # close file
+        with open(myFile) as theFile: # open file
+            head = list(islice(theFile, tryNumber * detectRows, (tryNumber + 1) * detectRows)) # select rows from file
+        theFile.close() # close file
 
         text = convertText(head) # convert all strange characters, remove special characters and so on
 
@@ -270,22 +270,22 @@ def checkLang(file, verbose): # checks file for language and returns language co
     print "detectlanguage.com says confidence is %s" % confidence
     return langCode
 
-def changeCode(file, newCode): # change language code to newCode
-    newName = "%s.%s%s" % (os.path.splitext(os.path.splitext(file)[0])[0], newCode, os.path.splitext(file)[1]) # file name without punctuation and last two suffixes
+def changeCode(myFile, newCode): # change language code to newCode
+    newName = "%s.%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], newCode, os.path.splitext(myFile)[1]) # file name without punctuation and last two suffixes
     print "--- Renaming to %s" % newName
-    os.rename(file, newName) # rename the file
+    os.rename(myFile, newName) # rename the file
     return newName
 
-def hasLink(file): # return True if the file already has a link to it, excluding the language code
+def hasLink(myFile): # return True if the file already has a link to it, excluding the language code
     result = False
-    linkName = "%s%s" % (os.path.splitext(os.path.splitext(file)[0])[0], os.path.splitext(file)[1])
+    linkName = "%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], os.path.splitext(myFile)[1])
     if os.path.islink(linkName): # there is a link to the file
         result = True
     return result
 
-def fileEmpty(file): # returns True is file is empty
+def fileEmpty(myFile): # returns True is file is empty
     #import os
-    return os.stat(file).st_size==0
+    return os.stat(myFile).st_size==0
 
 def langName(langCode): # returns language name from language code
     result = ""
@@ -321,15 +321,15 @@ def convertText(head):
 
         return text
 
-def isVideo(file, suffix):
+def isVideo(myFile, suffix):
     result = False
-    fileExtension = os.path.splitext(file)[1]
+    fileExtension = os.path.splitext(myFile)[1]
     if fileExtension.lower() == ".%s" % suffix:
         result = True
     return result
 
-def hasSub(file, path):
-    subName = os.path.splitext(file)[0]
+def hasSub(myFile, path):
+    subName = os.path.splitext(myFile)[0]
     origWD = os.getcwd() # current working directory
     os.chdir(path) # change working directory to where the videos are
     for lang in prefLangs:
@@ -339,25 +339,25 @@ def hasSub(file, path):
             subDownloads = foundLang("%s - present" % lang)
         else:
             print "*** Has no %s subtitles" % langName(lang).lower()
-            subDownloads = downloadSub(file, lang, path)
+            subDownloads = downloadSub(myFile, lang, path)
     os.chdir(origWD) # change working directory back
     return subDownloads
 
-def downloadSub(file, lang, path):
+def downloadSub(myFile, lang, path):
     print "--- Trying to download..."
     origWD = os.getcwd() # current working directory
     os.chdir(path) # change working directory to where the videos are
-    if call(["subliminal", "-q", "-l", lang, "--", file]): # try to download the subtitles
+    if call(["subliminal", "-q", "-l", lang, "--", myFile]): # try to download the subtitles
         print "*** Could not find %s subtitles" % langName(lang).lower()
         subDownloads = foundLang("%s - not found" % lang)
     else:
         print "--- Downloaded %s subtitles" % langName(lang).lower()
         subDownloads = foundLang(lang) # sending language code to be added
-        #subName = "%s.%s.%s" % (os.path.splitext(file)[0], lang, "srt")
+        #subName = "%s.%s.%s" % (os.path.splitext(myFile)[0], lang, "srt")
     os.chdir(origWD) # change working directory back
     return subDownloads
 
-def compareCodes(existingCode, checkedCode, file):
+def compareCodes(existingCode, checkedCode, myFile):
 
     print "existing: %s   checked: %s" % (existingCode, checkedCode)
 
@@ -365,7 +365,7 @@ def compareCodes(existingCode, checkedCode, file):
         print "--- detectlanguage.com agrees"
     else: # set code and detected codes does not match 
         print "*** detectlanguage.com disagrees"
-        print "\n    %s" % file
+        print "\n    %s" % myFile
         print "    Existing code is %s - %s, and checked code is %s - %s\n" % (existingCode, langName(existingCode).lower(), checkedCode, langName(existingCode).lower())
 
         print "    1 - Save as is: %s - %s" % (existingCode, langName(existingCode).lower())
@@ -379,7 +379,7 @@ def compareCodes(existingCode, checkedCode, file):
                 break
             elif choice == "2":
                 print "--- Setting language code to %s" % checkedCode
-                changeCode(file, checkedCode) # change code to the detected one
+                changeCode(myFile, checkedCode) # change code to the detected one
                 break
             elif choice == "3":
                 while True:
@@ -395,15 +395,15 @@ def compareCodes(existingCode, checkedCode, file):
                         break
                     else: #  # typed code is not allowed
                         print "\n    %s not a valid language code" % newCode
-                changeCode(file, newCode) # change code to your input
+                changeCode(myFile, newCode) # change code to your input
                 break
             else:
                 print "\n    Not a valid choice"
 
-def checkCoding(file, verbose):
-    myFile = open(file) # open sub
-    soup = BeautifulSoup(myFile) # read sub into BeautifulSoup
-    myFile.close() # close sub
+def checkCoding(myFile, verbose):
+    theFile = open(myFile) # open sub
+    soup = BeautifulSoup(theFile) # read sub into BeautifulSoup
+    theFile.close() # close sub
     encoding = soup.originalEncoding # let soup detect encoding
     if verbose:
         print "--- BeautifulSoup says: %s" % encoding
@@ -417,91 +417,91 @@ def checkCoding(file, verbose):
         encoding = "ISO-8859-1"
     return encoding
 
-def changeEncoding(file, encoding, keep, verbose):
+def changeEncoding(myFile, encoding, keep, verbose):
     if verbose:
-        print "--- Renaming to %s.%s" % (file, encoding)
-    os.rename(file, "%s.%s" % (file, encoding))
+        print "--- Renaming to %s.%s" % (myFile, encoding)
+    os.rename(myFile, "%s.%s" % (myFile, encoding))
     print "--- Changing encoding to %s" % prefEncoding
     blockSize = 1048576 # size in bytes to read every chunk
-    with codecs.open("%s.%s" % (file, encoding), "r", encoding) as sourceFile: # open the copy as source
-        with codecs.open(file, "w", prefEncoding) as targetFile: # open the target
+    with codecs.open("%s.%s" % (myFile, encoding), "r", encoding) as sourceFile: # open the copy as source
+        with codecs.open(myFile, "w", prefEncoding) as targetFile: # open the target
             while True:
                 contents = sourceFile.read(blockSize)
                 if not contents:
                     break
                 if verbose:
-                    print "--- Writing %s" % file
+                    print "--- Writing %s" % myFile
                 targetFile.write(contents) # write chunk to target
     sourceFile.close() # close source
     targetFile.close() # close target
     if not keep:
         if verbose:
-            print "--- Deleting temporary file %s.%s" % (file, encoding)
-        os.remove("%s.%s" % (file, encoding))
+            print "--- Deleting temporary file %s.%s" % (myFile, encoding)
+        os.remove("%s.%s" % (myFile, encoding))
 
-def checkFormat(file, verbose):
-    format = ""
+def checkFormat(myFile, verbose):
+    myFormat = ""
     if verbose:
         print "--- Checking subtitle format"
-    capsFile = open(file) # open sub
+    capsFile = open(myFile) # open sub
     caps = capsFile.read() # read sub
     reader = detect_format(caps) # detect format with pycaption
     if verbose:
         print "--- pycaption says: %s" % reader
     if reader:
         if "srt" in str(reader):
-            format = "srt"
+            myFormat = "srt"
         elif "sami" in str(reader):
-            format = "sami"
+            myFormat = "sami"
         elif "dfxp" in str(reader):
-            format = "dfxp"
+            myFormat = "dfxp"
     capsFile.close() # close sub
-    return format
+    return myFormat
 
-def samiToSrt(file, keep, verbose):
+def samiToSrt(myFile, keep, verbose):
     if verbose:
-        print "--- Renaming to %s.sami" % file
-    os.rename(file, "%s.sami" % file)
+        print "--- Renaming to %s.sami" % myFile
+    os.rename(myFile, "%s.sami" % myFile)
     print "--- Converting to srt"
-    sourceFile = open("%s.sami" % file) # open copy as source
+    sourceFile = open("%s.sami" % myFile) # open copy as source
     caps = sourceFile.read() # read source
     converter = CaptionConverter() # set pycaptions converter
     converter.read(caps, SAMIReader()) # read sami
-    with open(file, "w") as targetFile: # open target
+    with open(myFile, "w") as targetFile: # open target
         targetFile.write(converter.write(SRTWriter())) # write target
     sourceFile.close() # close source
     targetFile.close() # close target
     if not keep:
         if verbose:
-            print "--- Deleting temporary file %s.sami" % file
-        os.remove("%s.sami" % file)
+            print "--- Deleting temporary file %s.sami" % myFile
+        os.remove("%s.sami" % myFile)
 
-def dfxpToSrt(file, keep, verbose):
+def dfxpToSrt(myFile, keep, verbose):
     if verbose:
-        print "--- Renaming to %s.dfxp" % file
-    os.rename(file, "%s.dfxp" % file)
+        print "--- Renaming to %s.dfxp" % myFile
+    os.rename(myFile, "%s.dfxp" % myFile)
     print "--- Converting to srt"
-    sourceFile = open("%s.dfxp" % file) # open copy as source
+    sourceFile = open("%s.dfxp" % myFile) # open copy as source
     caps = sourceFile.read() # read source
     converter = CaptionConverter() # set pycaptions converter
     converter.read(caps, DFXPReader()) # read sami
-    with open(file, "w") as targetFile: # open target
+    with open(myFile, "w") as targetFile: # open target
         targetFile.write(converter.write(SRTWriter())) # write target
     sourceFile.close() # close source
     targetFile.close() # close target
     if not keep:
         if verbose:
-            print "--- Deleting temporary file %s.dfxp" % file
-        os.remove("%s.dfxp" % file)
+            print "--- Deleting temporary file %s.dfxp" % myFile
+        os.remove("%s.dfxp" % myFile)
 
-def emptyEntries(file, keep, verbose):
+def emptyEntries(myFile, keep, verbose):
     emptyEntryFound = False
     emptyEntries = 0
     entriesToDelete = []
 
     if verbose:
         print "--- Searching for empty entries"
-    subs = pysrt.open(file, encoding='utf-8') # open sub with pysrt as utf-8
+    subs = pysrt.open(myFile, encoding='utf-8') # open sub with pysrt as utf-8
     entries = len(subs) # count entries
     if verbose:
         print "--- %s entries total" % entries
@@ -531,24 +531,24 @@ def emptyEntries(file, keep, verbose):
             
         if keep:
             if verbose:
-                print "--- Copying original file to %s.emptyEntries" % file
-            copyfile(file, "%s.emptyEntries" % file)
+                print "--- Copying original file to %s.emptyEntries" % myFile
+            copyfile(myFile, "%s.emptyEntries" % myFile)
             
-        subs.save(file, encoding='utf-8') # save sub
+        subs.save(myFile, encoding='utf-8') # save sub
 
-        subs = pysrt.open(file, encoding='utf-8') # open new sub with pysrt
+        subs = pysrt.open(myFile, encoding='utf-8') # open new sub with pysrt
         entries = len(subs) # count entries
         print "--- Now has %s entries" % entries
         
     return emptyEntryFound
 
-def numbering(file, keep, verbose):
+def numbering(myFile, keep, verbose):
     wrongNumbering = False
 
     if verbose:
         print "--- Checking numbering"
 
-    subs = pysrt.open(file, encoding='utf-8') # open sub with pysrt as utf-8
+    subs = pysrt.open(myFile, encoding='utf-8') # open sub with pysrt as utf-8
     entries = len(subs) # count entries
 
     for entryNo in range(0, entries): # count entry numbers up to number of entries
@@ -557,12 +557,12 @@ def numbering(file, keep, verbose):
         if entryNo + 1 != int(lines[0]): # entry number does not match real numbering
             wrongNumbering = True
             print "*** Correcting numbering"
-            copyfile(file, "%s.wrongNumbering" % file)
+            copyfile(myFile, "%s.wrongNumbering" % myFile)
             break
 
     if wrongNumbering:
-        targetFile = codecs.open(file, "w", prefEncoding)
-        subs = pysrt.open("%s.wrongNumbering" % file, encoding='utf-8') # open sub with pysrt as utf-8
+        targetFile = codecs.open(myFile, "w", prefEncoding)
+        subs = pysrt.open("%s.wrongNumbering" % myFile, encoding='utf-8') # open sub with pysrt as utf-8
         entries = len(subs) # count entries
         for entryNo in range(0, entries): # count entry numbers up to number of entries
             subEntry = "%s" % subs[entryNo] # read single entry
@@ -579,7 +579,7 @@ def numbering(file, keep, verbose):
 
         if not keep:
             if verbose:
-                print "--- Deleting %s.wrongNumbering" % file
-            os.remove("%s.wrongNumbering" % file)
+                print "--- Deleting %s.wrongNumbering" % myFile
+            os.remove("%s.wrongNumbering" % myFile)
 
     return wrongNumbering

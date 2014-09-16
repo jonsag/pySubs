@@ -6,7 +6,7 @@
 
 import getopt
 
-from myFunctions import *
+from myFunctions import * 
 
 ##### handle arguments #####
 try:
@@ -86,18 +86,18 @@ def partLink(recursive, searchPath, suffix): # finds out language of sub, insert
     if recursive: # scan directories recursively
         print "\nSearching %s recursively for files ending with %s" % (searchPath, suffix)
         for root, dirs, files in os.walk(searchPath):
-            for file in files:
-                if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
-                    print "\n%s" % os.path.join(root, file)
-                    langSums = fileFound(os.path.join(root, file), langSums, verbose) # go ahead with the file
+            for myFile in files:
+                if isFile(os.path.join(root, myFile), suffix, verbose): # check if myFile matches criteria
+                    print "\n%s" % os.path.join(root, myFile)
+                    langSums = fileFound(os.path.join(root, myFile), langSums, verbose) # go ahead with the file
                     num += 1
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
-        for file in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
-                print "\n%s" % file
-                langSums = fileFound(os.path.join(searchPath, file), langSums, verbose) # go ahead with the file
+        for myFile in os.listdir(searchPath):
+            if isFile(os.path.join(searchPath, myFile), suffix, verbose): # check if myFile matches criteria
+                print "\n%s" % myFile
+                langSums = fileFound(os.path.join(searchPath, myFile), langSums, verbose) # go ahead with the file
                 num += 1
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, num)
@@ -137,28 +137,28 @@ def partGet(searchPath): # search for and download subtitles for your preferred 
     if recursive: # scan directories recursively
         print "\nSearching %s recursively for video files" % searchPath
         for root, dirs, files in os.walk(searchPath):
-            for file in files:
+            for myFile in files:
                 videoFound = False
                 for suffix in videoSuffixes:
-                    if isVideo(os.path.join(str(root), file), suffix): # check if file matches any of the video suffixes
-                        print "\n%s" % os.path.join(str(root), file)
+                    if isVideo(os.path.join(str(root), myFile), suffix): # check if myFile matches any of the video suffixes
+                        print "\n%s" % os.path.join(str(root), myFile)
                         num += 1
                         videoFound = True
                         break
                 if videoFound:
-                    subDownloads = hasSub(os.path.join(str(root), file), searchPath) # go ahead processing the video file
+                    subDownloads = hasSub(os.path.join(str(root), myFile), searchPath) # go ahead processing the video file
     else:
         print "\nSearching %s for video files" % searchPath
-        for file in os.listdir(searchPath):
+        for myFile in os.listdir(searchPath):
             videoFound = False
             for suffix in videoSuffixes:
-                if isVideo(file, suffix): # check if file matches any of the video suffixes
-                    print "\n%s" % file
+                if isVideo(myFile, suffix): # check if myFile matches any of the video suffixes
+                    print "\n%s" % myFile
                     num += 1
                     videoFound = True
                     break
             if videoFound:
-                subDownloads = hasSub(file, searchPath) # go ahead processing the video file
+                subDownloads = hasSub(myFile, searchPath) # go ahead processing the video file
 
     print "\nNumber of video files in %s: %d\n" % (searchPath, num)
 
@@ -189,23 +189,23 @@ def partCheck(recursive, searchPath, suffix, findCode): # check if language code
         if findCode:
             print "with language code %s" % findCode
         for root, dirs, files in os.walk(searchPath):
-            for file in files:
-                if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
-                    existingCode = hasLangCode(os.path.join(searchPath, file))
+            for myFile in files:
+                if isFile(os.path.join(root, myFile), suffix, verbose): # check if myFile matches criteria
+                    existingCode = hasLangCode(os.path.join(searchPath, myFile))
                     if existingCode:
                         if findCode:
                             if existingCode['code'] == str(findCode):
-                                print "\n%s" % os.path.join(root, file)
+                                print "\n%s" % os.path.join(root, myFile)
                                 print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
-                                checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
-                                compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file))
+                                checkedCode = checkLang(os.path.join(root, myFile), 1) # let detectlanguage.com see what language the file has
+                                compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), myFile))
                                 num += 1
                         else:
                             if existingCode:
-                                print "\n%s" % os.path.join(root, file)
+                                print "\n%s" % os.path.join(root, myFile)
                                 print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
-                                checkedCode = checkLang(os.path.join(root, file), 1) # let detectlanguage.com see what language the file has
-                                compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), file)) # compare existing and checked code
+                                checkedCode = checkLang(os.path.join(root, myFile), 1) # let detectlanguage.com see what language the file has
+                                compareCodes(existingCode['code'], checkedCode, os.path.join(str(root), myFile)) # compare existing and checked code
                                 num += 1
                             else:
                                 print "*** Has no language code"
@@ -214,14 +214,14 @@ def partCheck(recursive, searchPath, suffix, findCode): # check if language code
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
         if findCode:
             print "with language code %s" % findCode
-        for file in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
-                print "\n%s" % file
-                existingCode = hasLangCode(os.path.join(searchPath, file))
+        for myFile in os.listdir(searchPath):
+            if isFile(os.path.join(searchPath, myFile), suffix, verbose): # check if myFile matches criteria
+                print "\n%s" % myFile
+                existingCode = hasLangCode(os.path.join(searchPath, myFile))
                 if existingCode:
                     print "--- Has language code %s - %s" % (existingCode['code'], existingCode['name'].lower())
-                    checkedCode = checkLang(file, 1)  # let detectlanguage.com see what language the file has
-                    compareCodes(existingCode['code'], checkedCode, file)
+                    checkedCode = checkLang(myFile, 1)  # let detectlanguage.com see what language the file has
+                    compareCodes(existingCode['code'], checkedCode, myFile)
                     num += 1
                 else:
                     print "*** Has no language code"
@@ -243,7 +243,7 @@ def partFormat(searchPath): # check subtitles encoding and format
     dfxpFormat = 0
     wrongEncoding = 0
     wrongNumbering = 0
-    wrongFormat = 0
+    #wrongFormat = 0
     emptyEntry = 0
 
     if recursive: # scan directories recursively
@@ -251,81 +251,81 @@ def partFormat(searchPath): # check subtitles encoding and format
         if findCode:
             print "with language code %s" % findCode
         for root, dirs, files in os.walk(searchPath):
-            for file in files:
-                if isFile(os.path.join(root, file), suffix, verbose): # check if file matches criteria
-                    print "\n%s" % os.path.join(root, file)
+            for myFile in files:
+                if isFile(os.path.join(root, myFile), suffix, verbose): # check if myFile matches criteria
+                    print "\n%s" % os.path.join(root, myFile)
 
-                    encoding = checkCoding(os.path.join(root, file), verbose) # check encoding
+                    encoding = checkCoding(os.path.join(root, myFile), verbose) # check encoding
                     if encoding == prefEncoding:
                         print "--- Encoded in %s" % encoding # correct encoding
                     else:
                         print "*** Encoded in %s" % encoding # wrong encoding
-                        changeEncoding(os.path.join(root, file), encoding, keep, verbose) # set to preferred encoding
+                        changeEncoding(os.path.join(root, myFile), encoding, keep, verbose) # set to preferred encoding
                         wrongEncoding += 1
 
-                    format = checkFormat(os.path.join(root, file), verbose) # check format
-                    if not format:
+                    myFormat = checkFormat(os.path.join(root, myFile), verbose) # check format
+                    if not myFormat:
                         print "*** Could not detect format"
                         noFormat += 1
-                    elif format == "srt":
+                    elif myFormat == "srt":
                         print "--- Srt format"
                         srtFormat += 1
-                        if emptyEntries(os.path.join(root, file), keep, verbose): # look for empty entries, if so delete them
+                        if emptyEntries(os.path.join(root, myFile), keep, verbose): # look for empty entries, if so delete them
                             emptyEntry += 1
-                        if numbering(os.path.join(root, file), keep, verbose): # check if numbering is correct, if not correct it
+                        if numbering(os.path.join(root, myFile), keep, verbose): # check if numbering is correct, if not correct it
                             wrongNumbering += 1
-                    elif format == "sami":
+                    elif myFormat == "sami":
                         print "*** Sami format"
                         samiFormat += 1
-                        samiToSrt(os.path.join(root, file), keep, verbose) # convert from SAMI to SRT
-                        if emptyEntries(os.path.join(root, file), keep, verbose): # check for empty entries, if so delete them
+                        samiToSrt(os.path.join(root, myFile), keep, verbose) # convert from SAMI to SRT
+                        if emptyEntries(os.path.join(root, myFile), keep, verbose): # check for empty entries, if so delete them
                             emptyEntry += 1
-                        if numbering(os.path.join(root, file), keep, verbose): # check if numbering is correct, if not correct it
+                        if numbering(os.path.join(root, myFile), keep, verbose): # check if numbering is correct, if not correct it
                             wrongNumbering += 1
-                    elif format == "dfxp":
+                    elif myFormat == "dfxp":
                         print "*** Dfxp format"
                         dfxpFormat += 1
-                        dfxpToSrt(os.path.join(root, file), keep, verbose) # convert from DFXP to SRT
+                        dfxpToSrt(os.path.join(root, myFile), keep, verbose) # convert from DFXP to SRT
 
     else: # scan single directory
         print "\nSearching %s for files ending with %s" % (searchPath, suffix)
         if findCode:
             print "with language code %s" % findCode
-        for file in os.listdir(searchPath):
-            if isFile(os.path.join(searchPath, file), suffix, verbose): # check if file matches criteria
-                print "\n%s" % file
+        for myFile in os.listdir(searchPath):
+            if isFile(os.path.join(searchPath, myFile), suffix, verbose): # check if myFile matches criteria
+                print "\n%s" % myFile
 
-                encoding = checkCoding(os.path.join(searchPath, file), verbose) # check encoding
+                encoding = checkCoding(os.path.join(searchPath, myFile), verbose) # check encoding
                 if encoding == prefEncoding:
                     print "--- Encoded in %s" % encoding # correct encoding
                 else:
                     print "*** Encoded in %s" % encoding # wrong encoding
-                    changeEncoding(os.path.join(searchPath, file), encoding, keep, verbose) # set to preferred encoding
+                    changeEncoding(os.path.join(searchPath, myFile), encoding, keep, verbose) # set to preferred encoding
                     wrongEncoding += 1
                     
-                format = checkFormat(os.path.join(searchPath, file), verbose) # check format
-                if not format:
+                myFormat = checkFormat(os.path.join(searchPath, myFile), verbose) # check format
+                if not myFormat:
                     print "*** Could not detect format"
                     noFormat += 1
-                elif format == "srt":
+                elif myFormat == "srt":
                     print "--- Srt format"
                     srtFormat += 1
-                    if emptyEntries(os.path.join(searchPath, file), keep, verbose): # look for empty entries, if so delete them
+                    if emptyEntries(os.path.join(searchPath, myFile), keep, verbose): # look for empty entries, if so delete them
                         emptyEntry += 1
-                    if numbering(os.path.join(searchPath, file), keep, verbose): # check if numbering is correct, if not correct it
+                    if numbering(os.path.join(searchPath, myFile), keep, verbose): # check if numbering is correct, if not correct it
                         wrongNumbering += 1
-                elif format == "sami":
+                elif myFormat == "sami":
                     print "*** Sami format"
                     samiFormat += 1
-                    samiToSrt(os.path.join(searchPath, file), keep, verbose) # convert from SAMI to SRT
-                    if emptyEntries(os.path.join(searchPath, file), keep, verbose): # look for empty entries, if so delete them
+                    samiToSrt(os.path.join(searchPath, myFile), keep, verbose) # convert from SAMI to SRT
+                    if emptyEntries(os.path.join(searchPath, myFile), keep, verbose): # look for empty entries, if so delete them
                         emptyEntry += 1
-                    if numbering(os.path.join(searchPath, file), keep, verbose): # check if numbering is correct, if not correct it
+                    if numbering(os.path.join(searchPath, myFile), keep, verbose): # check if numbering is correct, if not correct it
                         wrongNumbering += 1
-                elif format == "dfxp":
+                elif myFormat == "dfxp":
                     print "*** Dfxp format"
                     dfxpFormat += 1
-                    dfxpToSrt(os.path.join(searchPath, file), keep, verbose) # convert from DFXP to SRT
+                    dfxpToSrt(os.path.join(searchPath, myFile), keep, verbose) # convert from DFXP to SRT
 
     print "\nNumber of %s files in %s: %d\n" % (suffix, searchPath, noFormat + srtFormat + samiFormat)
 
