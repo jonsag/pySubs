@@ -42,7 +42,7 @@ languages = detectlanguage.languages() # get available languages from detectlang
 
 languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
 
-prefEncoding = config.get('coding','prefEncoding') # your preferrd file encoding
+prefEncoding = config.get('coding','prefEncoding') # your preferrd file encoding 
 
 def onError(errorCode, extra):
     print "\nError:"
@@ -61,7 +61,7 @@ def onError(errorCode, extra):
     elif errorCode == 5:
         print "Wrong set of options given"
         usage(errorCode)
-    elif errorCode == 6:
+    elif errorCode in (6, 7):
         print "%s is not a valid argument" % extra
         usage(errorCode)
     else:
