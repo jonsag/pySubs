@@ -15,7 +15,7 @@ getTimeXML = config.get('thetvdb','getTimeXml')
 
 timeOut = int(config.get('thetvdb','timeOut'))
 
-def partRename(searchPath, recursive, renameVideo, renameSub, verbose):
+def partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose):
     videoFiles = []
     subFiles = []
     

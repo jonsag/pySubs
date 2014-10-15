@@ -4,7 +4,7 @@
 
 from myFunctions import *
 
-def partFormat(searchPath, recursive, findCode, keep, verbose): # check subtitles encoding and format
+def partFormat(searchPath, recursive, extension, findCode, keep, verbose): # check subtitles encoding and format
     noFormat = 0
     srtFormat = 0
     samiFormat = 0
