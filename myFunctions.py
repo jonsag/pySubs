@@ -321,7 +321,7 @@ def convertText(head, verbose):
             print texta
             print "-" * 40
             
-        textb = texta.split("\\n', '") # split string into list
+        textb = texta.split("\\n") # split string into list
         if debug:
             print "\nsplit:"
             print "-" * 40
