@@ -115,7 +115,7 @@ elif doGet and not doLink and not doStatus and not doCheck and not doFormat and 
     partGet(searchPath, recursive, verbose)
 
 elif doFormat and not doLink and not doGet and not doCheck and not doStatus and not doRename: # check subs format, convert to UTF-8 and convert to srt
-    partFormat(searchPath, recursive, extension, findCode, keep, verbose)
+    partFormat(searchPath, recursive, extension, keep, verbose)
 
 elif doLink and doGet and not doStatus and not doFormat and not doRename: # get and link
     partGet(searchPath, recursive, verbose)
@@ -123,7 +123,7 @@ elif doLink and doGet and not doStatus and not doFormat and not doRename: # get 
     partLink(recursive, searchPath, extension, verbose)
 
 elif doFormat and doLink and not doGet and not doStatus and not doCheck and not doRename: # format and link
-    partFormat(searchPath, recursive, extension, findCode, keep, verbose)
+    partFormat(searchPath, recursive, extension, keep, verbose)
     print "----------------------------------------------------------------"
     partLink(recursive, searchPath, extension, verbose)
 

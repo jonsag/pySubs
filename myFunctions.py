@@ -25,7 +25,6 @@ searchPath = ""
 searchPathRecursive = ""
 extension = ""
 langSums = []
-subDownloads = []
 
 config = ConfigParser.ConfigParser()
 config.read("%s/config.ini" % os.path.dirname(__file__)) # read config file
@@ -42,7 +41,9 @@ languages = detectlanguage.languages() # get available languages from detectlang
 
 languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
 
-prefEncoding = config.get('coding','prefEncoding') # your preferrd file encoding 
+prefEncoding = config.get('coding','prefEncoding') # your preferred file encoding
+
+debug = int(config.get('misc','debug'))
 
 def onError(errorCode, extra):
     print "\nError:"
@@ -117,7 +118,7 @@ dbmCacheFile = "%s/%s/cachefile.dbm" % (os.path.expanduser("~"), config.get('vid
 
 videoExtensions = (config.get('video','videoExtensions')).split(',') # load video extensions
 
-def isFile(myFile, extension, verbose): # returns True if extension is correct, is a file, is not a link and is not empty
+def isSub(myFile, extension, verbose): # returns True if extension is correct, is a file, is not a link and is not empty
     result = False # set default result False
     #if verbose:
     #    print "--- Checking if %s matches our criteria" % myFile
@@ -192,7 +193,7 @@ def fileFound(myFile, langSums, verbose): # runs on every file that matches exte
     return langSums
 
 def makeLink(myFile): # create a link to file that has language code
-    print "--- Creating link for %s" % myFile
+    print "--- Creating link"
     linkName = "%s%s" % (os.path.splitext(os.path.splitext(myFile)[0])[0], os.path.splitext(myFile)[1]) # remove extension, remove another extension and add first extension again
     if os.path.isfile(linkName) and not os.path.islink(linkName): # the new link would overwrite a file
         print "*** %s is a file. Skipping" % linkName
@@ -200,7 +201,7 @@ def makeLink(myFile): # create a link to file that has language code
         if os.path.islink(linkName): # the new link would overwrite an old link
             print "*** %s exists as a link. Removing it..." % linkName
             os.unlink(linkName) # delete old link
-        print "--- Creating link %s" % linkName
+        print "--- Creating new link"
         os.symlink(os.path.basename(myFile), linkName) # create a link pointing to the file with link name without language code
     return
 
@@ -216,9 +217,9 @@ def addLangCode(myFile, langCode): # adds language code to file name
         makeLink(newName) # make link to file
 
 def checkLang(myFile, verbose): # checks file for language and returns language code, or if is doubtful returns "xx"
-    status = detectlanguage.user_status() # get status for the account at detectlanguage.com
     tryNumber = 0 # starting up counter
     finished = False
+    status = detectlanguage.user_status() # get status for the account at detectlanguage.com
     if status['status'] == "SUSPENDED":
         print "*** Account at detectlanguage.com is suspended"
         print "    Run %s -d to see status" % sys.argv[0]
@@ -236,10 +237,7 @@ def checkLang(myFile, verbose): # checks file for language and returns language 
             head = list(islice(theFile, tryNumber * detectRows, (tryNumber + 1) * detectRows)) # select rows from file
         theFile.close() # close file
 
-        text = convertText(head) # convert all strange characters, remove special characters and so on
-
-        if verbose:
-            print "\n%s\n" % text
+        text = convertText(head, verbose) # convert all strange characters, remove special characters and so on
 
         print "--- Sending rows %d-%d to detectlanguage.com" % (tryNumber * detectRows, (tryNumber + 1) * detectRows)
         result = detectlanguage.detect(text) # detect language
@@ -291,7 +289,6 @@ def hasLink(myFile): # return True if the file already has a link to it, excludi
     return result
 
 def fileEmpty(myFile): # returns True is file is empty
-    #import os
     return os.stat(myFile).st_size==0
 
 def langName(langCode): # returns language name from language code
@@ -306,26 +303,70 @@ def foundLang(langCode): # add language code to langSums
     langSums.append(langCode)    
     return langSums
 
-def convertText(head):
-        texta = str(head) # make string of array
-        textb = texta.split("\\r\\n")
-        
+def convertText(head, verbose):
+        text = ""
         textc = []
         textd = []
-        text = ""
-        for line in textb:
-            if not line == "\\r\\n']" and not line == "['1" and not line == '"]' and not re.match("^[0-9:',.>'\- \]]*$", line):# re.match("^[0-9:\-.>\' ]*$", line):
-                #print line
+        
+        if debug:
+            print "\nhead:"
+            print "-" * 40
+            print head
+            print "-" * 40
+            
+        texta = str(head) # make string of array
+        if debug:
+            print "\nstring:"
+            print "-" * 40
+            print texta
+            print "-" * 40
+            
+        textb = texta.split("\\n', '") # split string into list
+        if debug:
+            print "\nsplit:"
+            print "-" * 40
+            for line in textb:
+                print line
+            print "-" * 40
+        
+        for line in textb: # process line by line, deleting all unwanted ones
+            if (
+                not line == "\\r\\n']" 
+                and not line == "['1" 
+                and not line == '"]' 
+                and not re.match("^[0-9:',.>'\- \]]*$", line)
+                ) :
                 textc.append(line)
 
-        for line in textc:
-            textd.append(line.replace('\\xc3\\xa5','å').replace('\\xc3\\xa4','ä').replace('\\xc3\\xb6','ö').replace('\\xc3\\x85', 'Å').replace('\\xc3\\x84', 'Ä').replace('\\xc3\\x96', 'Ö').rstrip('\-').lstrip('\-').lstrip("', '").lstrip("- ").lstrip('"- ').lstrip(", '").lstrip('"- '))
-            #textd.append(line.replace('\\xc3\\xa5','å').replace('\\xc3\\xa4','ä').replace('\\xc3\\xb6','ö').replace('\\xc3\\x85', 'Å').replace('\\xc3\\x84', 'Ä').replace('\\xc3\\\x96', 'Ö').rstrip('\-').lstrip('\-').lstrip("'").lstrip(",").lstrip('"'))
+        for line in textc: # append to text, converting all odd things...
+            textd.append(line.
+                         replace('\\xc3\\xa5','å').
+                         replace('\\xc3\\xa4','ä').
+                         replace('\\xc3\\xb6','ö').
+                         replace('\\xc3\\x85', 'Å').
+                         replace('\\xc3\\x84', 'Ä').
+                         replace('\\xc3\\x96', 'Ö').
+                         rstrip('\-').lstrip('\-').
+                         lstrip("', '").lstrip("- ").
+                         lstrip('"- ').lstrip(", '").
+                         lstrip('"- ').rstrip("\\n']").
+                         rstrip(" ")
+                         )
+
         for line in textd:
             #print line
             text = "%s %s" % (text, line)
+            
+        text = text.replace("- ", " ")
 
-
+        if verbose:
+            print "\nText to examine:"
+            print "-" * 40
+            print text
+            print "-" * 40
+            print
+        print
+        
         return text
 
 def isVideo(myFile, extension):
@@ -335,7 +376,7 @@ def isVideo(myFile, extension):
         result = True
     return result
 
-def hasSub(myFile, path):
+def hasSub(myFile, path, subDownloads, verbose):
     subName = os.path.splitext(myFile)[0]
     origWD = os.getcwd() # current working directory
     os.chdir(path) # change working directory to where the videos are
@@ -365,7 +406,8 @@ def downloadSub(myFile, lang, path):
     return subDownloads
 
 def compareCodes(existingCode, checkedCode, myFile):
-
+    setCode = existingCode
+    
     print "existing: %s   checked: %s" % (existingCode, checkedCode)
 
     if existingCode == checkedCode: # set code and detected codes match
@@ -383,10 +425,12 @@ def compareCodes(existingCode, checkedCode, myFile):
             choice = raw_input("\n    Your choice: ") # get choice
             if choice == "1":
                 print "--- Keeping existing code %s" % existingCode
+                setCode = existingCode
                 break
             elif choice == "2":
                 print "--- Setting language code to %s" % checkedCode
                 changeCode(myFile, checkedCode) # change code to the detected one
+                setCode = checkedCode
                 break
             elif choice == "3":
                 while True:
@@ -403,9 +447,12 @@ def compareCodes(existingCode, checkedCode, myFile):
                     else: #  # typed code is not allowed
                         print "\n    %s not a valid language code" % newCode
                 changeCode(myFile, newCode) # change code to your input
+                setCode = newCode
                 break
             else:
                 print "\n    Not a valid choice"
+                
+    return setCode
 
 def checkCoding(myFile, verbose):
     theFile = open(myFile) # open sub
@@ -590,3 +637,64 @@ def numbering(myFile, keep, verbose):
             os.remove("%s.wrongNumbering" % myFile)
 
     return wrongNumbering
+
+def findVideoFiles(searchPath, recursive, videoFiles, verbose):
+    num = 0
+    
+    if recursive: # scan directories recursively
+        print "\nSearching %s recursively for video files..." % searchPath
+        for root, dirs, files in os.walk(searchPath):
+            for myFile in files:
+                videoFound = False
+                for extension in videoExtensions:
+                    if isVideo(os.path.join(str(root), myFile), extension): # check if myFile matches any of the video extensions
+                        print "%s" % myFile
+                        num += 1
+                        videoFound = True
+                        break
+                if videoFound:
+                    videoFiles.append(os.path.join(str(root), myFile))
+    else:
+        print "\nSearching %s for video files..." % searchPath
+        for myFile in os.listdir(searchPath):
+            videoFound = False
+            for extension in videoExtensions:
+                if isVideo(os.path.join(str(searchPath), myFile), extension): # check if myFile matches any of the video extensions
+                    print "%s" % myFile
+                    num += 1
+                    videoFound = True
+                    break
+            if videoFound:
+                videoFiles.append(os.path.join(str(searchPath), myFile))
+                
+    print "Number of video files in %s: %d\n" % (searchPath, num)
+    
+    return videoFiles
+
+def findSubFiles(searchPath, recursive, extension, subFiles, findCode, verbose):
+    num = 0
+    
+    if recursive: # scan directories recursively
+        print "\nSearching %s recursively for files ending with %s" % (searchPath, extension)
+        if findCode:
+            print "with language code %s..." % findCode
+        for root, dirs, files in os.walk(searchPath):
+            for myFile in files:
+                if isSub(os.path.join(str(root), myFile), extension, verbose): # check if myFile matches criteria
+                    print "%s" % myFile
+                    num += 1
+                    subFiles.append(os.path.join(str(root), myFile))
+                    
+    else: # scan single directory
+        print "\nSearching %s for files ending with %s" % (searchPath, extension)
+        if findCode:
+            print "with language code %s..." % findCode
+        for myFile in os.listdir(searchPath):
+            if isSub(os.path.join(str(searchPath), myFile), extension, verbose): # check if myFile matches criteria
+                print "%s" % myFile
+                num += 1
+                subFiles.append(os.path.join(str(searchPath), myFile))
+                
+    print "Number of subtitle files in %s: %d\n" % (searchPath, num)
+
+    return subFiles

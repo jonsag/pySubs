@@ -12,6 +12,7 @@ theTVdbApiKey = config.get('thetvdb','theTVdbApiKey')
 
 getMirrorXml = config.get('thetvdb','getMirrorXml')
 getTimeXML = config.get('thetvdb','getTimeXml')
+getSeriesXml = config.get('thetvdb','getSeriesXml')
 
 timeOut = int(config.get('thetvdb','timeOut'))
 
@@ -20,54 +21,24 @@ def partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose
     subFiles = []
     
     if renameVideo:
-        videoFiles = findVideos(searchPath, recursive, videoFiles, verbose)
+        videoFiles = findVideoFiles(searchPath, recursive, videoFiles, verbose)
         
     if renameSub:
-        subFiles = findSubs(searchPath, recursive, subFiles, verbose)
+        subFiles = findSubFiles(searchPath, recursive, extension, subFiles, False, verbose)
         
-    mirror = getTheTVdbMirror(verbose)
-    previousTime = getTheTVdbTime(verbose)
+    if videoFiles:
+        print "Videos found:"
+        for videoFile in videoFiles:
+            print videoFile
+        print
+    if subFiles:
+        print "Subtitles found:"
+        for subFile in subFiles:
+            print subFile
+        print
         
-def findVideos(searchPath, recursive, videoFiles, verbose):
-    num = 0
-    videoFiles = []
-    
-    if recursive: # scan directories recursively
-        print "\nSearching %s recursively for video files" % searchPath
-        for root, dirs, files in os.walk(searchPath):
-            for myFile in files:
-                videoFound = False
-                for extension in videoExtensions:
-                    if isVideo(os.path.join(str(root), myFile), extension): # check if myFile matches any of the video extensions
-                        print "\n%s" % os.path.join(str(root), myFile)
-                        num += 1
-                        videoFound = True
-                        break
-                if videoFound:
-                    print "\n%s" % myFile
-                    videoFiles.append(os.path.join(str(root), myFile))
-    else:
-        print "\nSearching %s for video files" % searchPath
-        for myFile in os.listdir(searchPath):
-            videoFound = False
-            for extension in videoExtensions:
-                if isVideo(myFile, extension): # check if myFile matches any of the video extensions
-                    print "\n%s" % myFile
-                    num += 1
-                    videoFound = True
-                    break
-            if videoFound:
-                print "\n%s" % myFile
-                videoFiles.append(myFile)
-                
-    print "\nNumber of video files in %s: %d\n" % (searchPath, num)
-    
-    return videoFiles
-
-def findSubs(searchPath, recursive, subFiles, verbose):
-    print "hej hopp"
-    
-    return subFiles
+    #mirror = getTheTVdbMirror(verbose)
+    #previousTime = getTheTVdbTime(verbose)
 
 def getTheTVdbMirror(verbose):
     mirrors = []
@@ -142,7 +113,7 @@ def getTheTVdbMirror(verbose):
                     mirrorTypemask = ""
             
     for line in mirrors:
-        print "Id: %s\nPath: %s\nType mask: %s" % (line['id'], line['path'], line['typemask'])
+        print "\nId: %s\nPath: %s\nType mask: %s" % (line['id'], line['path'], line['typemask'])
         if line['xml']:
             print "Has XML"
         if line['banner']:
