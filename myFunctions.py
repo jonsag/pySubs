@@ -307,6 +307,7 @@ def convertText(head, verbose):
         text = ""
         textc = []
         textd = []
+        texte = []
         
         if debug:
             print "\nhead:"
@@ -328,15 +329,27 @@ def convertText(head, verbose):
             for line in textb:
                 print line
             print "-" * 40
+            
+        for line in textb:
+            texte.append(line.
+                         rstrip("\\r"))
         
-        for line in textb: # process line by line, deleting all unwanted ones
+        for line in texte: # process line by line, deleting all unwanted ones
             if (
                 not line == "\\r\\n']" 
                 and not line == "['1" 
                 and not line == '"]' 
-                and not re.match("^[0-9:',.>'\- \]]*$", line)
-                ) :
+                and not line == "['1\\r" 
+                and not line == "', '\\r"
+                and not re.match("^[0-9:',.>'\- \]]*$", line)):
                 textc.append(line)
+
+        if debug:
+            print "\nremoved lines:"
+            print "-" * 40
+            for line in textc:
+                print line
+            print "-" * 40
 
         for line in textc: # append to text, converting all odd things...
             textd.append(line.
@@ -350,11 +363,17 @@ def convertText(head, verbose):
                          lstrip("', '").lstrip("- ").
                          lstrip('"- ').lstrip(", '").
                          lstrip('"- ').rstrip("\\n']").
-                         rstrip(" ")
+                         rstrip(" ").rstrip("\\r")
                          )
 
+        if debug:
+            print "\ncleaned:"
+            print "-" * 40
+            for line in textd:
+                print line
+            print "-" * 40
+
         for line in textd:
-            #print line
             text = "%s %s" % (text, line)
             
         text = text.replace("- ", " ")
