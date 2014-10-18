@@ -6,6 +6,7 @@ from myFunctions import *
 
 def partCheck(recursive, searchPath, extension, findCode, verbose): # check if language code set is correct
     langSums = []
+    subsFound = []
     num = 0
     subFiles = []
 
@@ -15,6 +16,7 @@ def partCheck(recursive, searchPath, extension, findCode, verbose): # check if l
         for myFile in subFiles:
             print "\n%s" % myFile
             existingCode = hasLangCode(os.path.join(searchPath, myFile))
+            subsFound = foundLang(existingCode)
             if existingCode:
                 if findCode != "all" and findCode != "pref":
                     if existingCode['code'] == str(findCode):
@@ -60,9 +62,20 @@ def partCheck(recursive, searchPath, extension, findCode, verbose): # check if l
             else:
                 print "*** Has no language code"
     
-    print "\nLanguages found:"
-    for lang in languages:
-        langSum = langSums.count(lang['code'])
-        if langSums.count(lang['code']) > 0:
-            print "%s - %s:  %d" % (lang['code'], lang['name'].lower(), langSum)
-    print "\n"
+    if subsFound:
+        print "\nAll subtitles found:"
+        print "\nLanguages found:"
+        for lang in languages:
+            langSum = subsFound.count(lang['code'])
+            if subsFound.count(lang['code']) > 0:
+                print "%s - %s:  %d" % (lang['code'], lang['name'].lower(), langSum)
+    print
+    
+    if langSums:
+        print "\nSearched for:"
+        for lang in languages:
+            langSum = langSums.count(lang['code'])
+            if langSums.count(lang['code']) > 0:
+                print "%s - %s:  %d" % (lang['code'], lang['name'].lower(), langSum)
+    print
+    
