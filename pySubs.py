@@ -6,13 +6,10 @@
 
 import getopt
 
-from myFunctions import * 
-from link import partLink
-from status import partStatus
-from get import partGet
-from check import partCheck
-from format import partFormat
-from rename import partRename
+#import sys, os
+
+#from myFunctions import onError, usage, languages
+from myFunctions import *
 
 ##### handle arguments #####
 try:
@@ -106,31 +103,41 @@ else:
 
 ########################################## choose what to run ##########################################
 if doLink and not doStatus and not doGet and not doCheck and not doFormat and not doRename: # find language in subs and create links
+    from link import partLink
     partLink(recursive, searchPath, extension, verbose)
 
 elif doStatus and not doLink and not doGet and not doCheck and not doFormat  and not doRename: # status at detectlanguage.com
+    from status import partStatus
     partStatus(verbose)
 
 elif doGet and not doLink and not doStatus and not doCheck and not doFormat and not doRename: # get subs for video files
+    from get import partGet
     partGet(searchPath, recursive, verbose)
 
 elif doFormat and not doLink and not doGet and not doCheck and not doStatus and not doRename: # check subs format, convert to UTF-8 and convert to srt
+    from format import partFormat
     partFormat(searchPath, recursive, extension, keep, verbose)
 
 elif doLink and doGet and not doStatus and not doFormat and not doRename: # get and link
+    from link import partLink
+    from get import partGet
     partGet(searchPath, recursive, verbose)
     print "----------------------------------------------------------------"
     partLink(recursive, searchPath, extension, verbose)
 
 elif doFormat and doLink and not doGet and not doStatus and not doCheck and not doRename: # format and link
+    from link import partLink
+    from format import partFormat
     partFormat(searchPath, recursive, extension, keep, verbose)
     print "----------------------------------------------------------------"
     partLink(recursive, searchPath, extension, verbose)
 
 elif doCheck and not doLink and not doGet and not doStatus and not doFormat and not doRename: # check language codes manually
+    from check import partCheck
     partCheck(recursive, searchPath, extension, findCode, verbose)
     
 elif doRename and not doLink and not doStatus and not doGet and not doCheck and not doFormat: # rename video files with data from thetvdb api
+    from rename import partRename
     partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose)
 
 else:

@@ -64,15 +64,13 @@ def partCheck(recursive, searchPath, extension, findCode, verbose): # check if l
     
     if subsFound:
         print "\nAll subtitles found:"
-        print "\nLanguages found:"
         for lang in languages:
             langSum = subsFound.count(lang['code'])
             if subsFound.count(lang['code']) > 0:
                 print "%s - %s:  %d" % (lang['code'], lang['name'].lower(), langSum)
-    print
     
     if langSums:
-        print "\nSearched for:"
+        print "\nChecked:"
         for lang in languages:
             langSum = langSums.count(lang['code'])
             if langSums.count(lang['code']) > 0:
