@@ -86,11 +86,12 @@ def usage(exitCode):
     print "          Options: Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
     print "     OR\n"
-    print "%s -c [all|pref|<code>] [-p <path>] [-r]" % sys.argv[0]
+    print "%s -c [all|pref|<code>|force] [-p <path>] [-r]" % sys.argv[0]
     print "          'C'heck language codes set in filenames manually"
     print "          Arguments: all checks all files with languagecode set"
     print "                     pref checks all files with any of your preferred languages"
     print "                     <code>, give a valid language code"
+    print "                     force checks all, and let you decide"
     print "          Options: Set -e <extension> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
@@ -424,53 +425,59 @@ def downloadSub(myFile, lang, path):
     os.chdir(origWD) # change working directory back
     return subDownloads
 
-def compareCodes(existingCode, checkedCode, myFile):
+def compareCodes(existingCode, checkedCode, myFile, ask):
     setCode = existingCode
     
     print "existing: %s   checked: %s" % (existingCode, checkedCode)
 
-    if existingCode == checkedCode: # set code and detected codes match
+    if ask:
+        askForCode(existingCode, checkedCode, myFile)
+    elif existingCode == checkedCode: # set code and detected codes match
         print "--- detectlanguage.com agrees"
     else: # set code and detected codes does not match 
         print "*** detectlanguage.com disagrees"
         print "\n    %s" % myFile
-        print "    Existing code is %s - %s, and checked code is %s - %s\n" % (existingCode, langName(existingCode).lower(), checkedCode, langName(existingCode).lower())
-
-        print "    1 - Save as is: %s - %s" % (existingCode, langName(existingCode).lower())
-        print "    2 - Change to detected code: %s - %s" % (checkedCode, langName(checkedCode).lower())
-        print "    3 - Set to new code"
-
-        while True:
-            choice = raw_input("\n    Your choice: ") # get choice
-            if choice == "1":
-                print "--- Keeping existing code %s" % existingCode
-                setCode = existingCode
-                break
-            elif choice == "2":
-                print "--- Setting language code to %s" % checkedCode
-                changeCode(myFile, checkedCode) # change code to the detected one
-                setCode = checkedCode
-                break
-            elif choice == "3":
-                while True:
-                    newCode = raw_input("\n    Enter new code: ") # type in code
-                    for language in languages: # run through codes to find if typed one is allowed
-                        if newCode == language['code']: # typed code is allowed
-
-                            allowed = True
-                            break
-                        else: # typed code is not allowed
-                            allowed = False
-                    if allowed: # typed code is allowed
-                        break
-                    else: #  # typed code is not allowed
-                        print "\n    %s not a valid language code" % newCode
-                changeCode(myFile, newCode) # change code to your input
-                setCode = newCode
-                break
-            else:
-                print "\n    Not a valid choice"
+        setCode = askForCode(existingCode, checkedCode, myFile)
                 
+    return setCode
+
+def askForCode(existingCode, checkedCode, myFile):
+    print "    Existing code is %s - %s, and checked code is %s - %s\n" % (existingCode, langName(existingCode).lower(), checkedCode, langName(existingCode).lower())
+
+    print "    1 - Save as is: %s - %s" % (existingCode, langName(existingCode).lower())
+    print "    2 - Change to detected code: %s - %s" % (checkedCode, langName(checkedCode).lower())
+    print "    3 - Set to new code"
+
+    while True:
+        choice = raw_input("\n    Your choice: ") # get choice
+        if choice == "1":
+            print "--- Keeping existing code %s" % existingCode
+            setCode = existingCode
+            break
+        elif choice == "2":
+            print "--- Setting language code to %s" % checkedCode
+            changeCode(myFile, checkedCode) # change code to the detected one
+            setCode = checkedCode
+            break
+        elif choice == "3":
+            while True:
+                newCode = raw_input("\n    Enter new code: ") # type in code
+                for language in languages: # run through codes to find if typed one is allowed
+                    if newCode == language['code']: # typed code is allowed
+                        allowed = True
+                        break
+                    else: # typed code is not allowed
+                        allowed = False
+                if allowed: # typed code is allowed
+                    break
+                else: #  # typed code is not allowed
+                    print "\n    %s not a valid language code" % newCode
+            changeCode(myFile, newCode) # change code to your input
+            setCode = newCode
+            break
+        else:
+            print "\n    Not a valid choice"
+            
     return setCode
 
 def findVideoFiles(searchPath, recursive, videoFiles, verbose):

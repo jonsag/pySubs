@@ -57,7 +57,7 @@ for option, argument in myopts:
         usage(0)
     elif option in ('-c', '--check'):
         doCheck = True
-        if argument == "all" or argument == "pref":
+        if argument == "all" or argument == "pref" or argument == "force":
             findCode = argument
         else:
             for language in languages:
