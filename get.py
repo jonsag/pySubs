@@ -4,7 +4,7 @@
 
 from myFunctions import *
 
-def partGet(searchPath, recursive, verbose): # search for and download subtitles for your preferred languages
+def partGet(searchPath, recursive, getSubs, verbose):  # search for and download subtitles for your preferred languages
     videoFiles = []
     subDownloads = []
     
@@ -13,7 +13,7 @@ def partGet(searchPath, recursive, verbose): # search for and download subtitles
     if videoFiles:
         for myFile in videoFiles:
             print "\n%s" % myFile
-            subDownloads = hasSub(myFile, searchPath, subDownloads, verbose) # go ahead processing the video file
+            subDownloads = hasSub(myFile, searchPath, subDownloads, verbose)  # go ahead processing the video file
 
     if subDownloads:
         print "\nDownloaded subtitles:"

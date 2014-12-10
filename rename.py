@@ -8,13 +8,13 @@ import xml.etree.ElementTree as ET
 
 from myFunctions import *
 
-theTVdbApiKey = config.get('thetvdb','theTVdbApiKey')
+theTVdbApiKey = config.get('thetvdb', 'theTVdbApiKey')
 
-getMirrorXml = config.get('thetvdb','getMirrorXml')
-getTimeXML = config.get('thetvdb','getTimeXml')
-getSeriesXml = config.get('thetvdb','getSeriesXml')
+getMirrorXml = config.get('thetvdb', 'getMirrorXml')
+getTimeXML = config.get('thetvdb', 'getTimeXml')
+getSeriesXml = config.get('thetvdb', 'getSeriesXml')
 
-timeOut = int(config.get('thetvdb','timeOut'))
+timeOut = int(config.get('thetvdb', 'timeOut'))
 
 def partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose):
     videoFiles = []
@@ -37,8 +37,8 @@ def partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose
             print subFile
         print
         
-    #mirror = getTheTVdbMirror(verbose)
-    #previousTime = getTheTVdbTime(verbose)
+    # mirror = getTheTVdbMirror(verbose)
+    # previousTime = getTheTVdbTime(verbose)
 
 def getTheTVdbMirror(verbose):
     mirrors = []
@@ -47,7 +47,7 @@ def getTheTVdbMirror(verbose):
     mirrorTypemask = ""
     
     try:
-        response = urllib2.urlopen(getMirrorXml, timeout = timeOut).read() # get data from server
+        response = urllib2.urlopen(getMirrorXml, timeout=timeOut).read()  # get data from server
         if verbose:
             print "--- Got data"
     except urllib2.URLError, e:
@@ -58,7 +58,7 @@ def getTheTVdbMirror(verbose):
     if verbose:
         print response
     
-    xmlRoot = ET.fromstring(response) # read xml
+    xmlRoot = ET.fromstring(response)  # read xml
     
     for xmlChild in xmlRoot:
         if 'Mirror' in xmlChild.tag:
@@ -128,7 +128,7 @@ def getTheTVdbMirror(verbose):
         
 def getTheTVdbTime(verbose):
     try:
-        response = urllib2.urlopen(getTimeXML, timeout = timeOut).read() # get data from server
+        response = urllib2.urlopen(getTimeXML, timeout=timeOut).read()  # get data from server
         if verbose:
             print "--- Got data"
     except urllib2.URLError, e:
@@ -139,7 +139,7 @@ def getTheTVdbTime(verbose):
     if verbose:
         print response
     
-    xmlRoot = ET.fromstring(response) # read xml
+    xmlRoot = ET.fromstring(response)  # read xml
     
     for xmlChild in xmlRoot:
         if 'Time' in xmlChild.tag:

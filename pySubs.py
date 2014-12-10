@@ -6,17 +6,18 @@
 
 import getopt
 
-#import sys, os
+# import sys, os
 
-#from myFunctions import onError, usage, languages
+# from myFunctions import onError, usage, languages
 from myFunctions import *
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:],'p:re:ldgc:fn:skhv' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'p:re:ldg:c:ft:n:skhv' ,
                                  ['path=', 'recursive', 'extension=',
-                                  'link', 'detectlang', 'get',
-                                  'check=', 'format', 'rename=', 'search',
+                                  'link', 'detectlang', 'get=',
+                                  'check=', 'format', 'translate=',
+                                  'rename=', 'search',
                                   'keep', 'help', 'verbose'])
 
 except getopt.GetoptError as e:
@@ -27,17 +28,17 @@ extension = ".srt"
 searchPath = os.path.abspath(os.getcwd())
 doLink = False
 doStatus = False
-doGet = False
-doCheck = False
+getSubs = ""
+checkCode = ""
 doFormat = False
+doTranslate = ""
 doRename = False
 renameVideo = False
 renameSub = False
 verbose = False
 keep = False
-findCode = ""
 
-if len(sys.argv) == 1: # no options passed
+if len(sys.argv) == 1:  # no options passed
     onError(2, 2)
 
 for option, argument in myopts:
@@ -52,21 +53,33 @@ for option, argument in myopts:
     elif option in ('-d', '--detectlang'):
         doStatus = True
     elif option in ('-g', '--get'):
-        doGet = True
-    elif option in ('-h', '--help'):
-        usage(0)
-    elif option in ('-c', '--check'):
-        doCheck = True
-        if argument == "all" or argument == "pref" or argument == "force":
-            findCode = argument
+        if argument == "all" or argument == "pref":
+            getSubs = argument
         else:
             for language in languages:
                 if argument == language['code']:
-                    findCode = argument
-        if not findCode:
+                    getSubs = argument
+        if not getSubs:
+            onError(6, argument)
+    elif option in ('-h', '--help'):
+        usage(0)
+    elif option in ('-c', '--check'):
+        if argument == "all" or argument == "pref" or argument == "force":
+            checkCode = argument
+        else:
+            for language in languages:
+                if argument == language['code']:
+                    checkCode = argument
+        if not checkCode:
             onError(6, argument)
     elif option in ('-f', '--format'):
         doFormat = True
+    elif option in ('-t', '--translate'):
+        for translateEngine in translateEngines:
+            if argument == translateEngine:
+                doTranslate = argument
+        if not doTranslate:
+            onError(8, "Not a valid argument to -t (--translate)")
     elif option in ('-n', '--rename'):
         doRename = True
         if argument == "all":
@@ -83,62 +96,66 @@ for option, argument in myopts:
     elif option in ('-v', '--verbose'):
         verbose = True
 
-if not doLink and not doStatus and not doGet and not doCheck and not doFormat and not doRename: # no program part selected
+if not doLink and not doStatus and not getSubs and not checkCode and not doFormat and not doRename and not doTranslate:  # no program part selected
     onError(3, 3)
 
-if searchPath: # argument -p --path passed
-    if not os.path.isdir(searchPath): # not a valid path
+if searchPath:  # argument -p --path passed
+    if not os.path.isdir(searchPath):  # not a valid path
         onError(4, searchPath)
 else:
     print "\nNo path given."
     print "Using current dir %s" % searchPath
 
-if extension: # argument -e --extension passed
-    extension = ".%s" % extension.lstrip('.') # remove leading . if any
+if extension:  # argument -e --extension passed
+    extension = ".%s" % extension.lstrip('.')  # remove leading . if any
 else:
     print "\nNo extension given!"
-    print "Setting %s" % extension.lstrip('.') # remove leading . if any
+    print "Setting %s" % extension.lstrip('.')  # remove leading . if any
 
 
 
 ########################################## choose what to run ##########################################
-if doLink and not doStatus and not doGet and not doCheck and not doFormat and not doRename: # find language in subs and create links
+if doLink and not doStatus and not getSubs and not checkCode and not doFormat and not doRename and not doTranslate:  # find language in subs and create links
     from link import partLink
     partLink(recursive, searchPath, extension, verbose)
 
-elif doStatus and not doLink and not doGet and not doCheck and not doFormat  and not doRename: # status at detectlanguage.com
+elif doStatus and not doLink and not getSubs and not checkCode and not doFormat  and not doRename and not doTranslate:  # status at detectlanguage.com
     from status import partStatus
     partStatus(verbose)
 
-elif doGet and not doLink and not doStatus and not doCheck and not doFormat and not doRename: # get subs for video files
+elif getSubs and not doLink and not doStatus and not checkCode and not doFormat and not doRename and not doTranslate:  # get subs for video files
     from get import partGet
-    partGet(searchPath, recursive, verbose)
+    partGet(searchPath, recursive, getSubs, verbose)
 
-elif doFormat and not doLink and not doGet and not doCheck and not doStatus and not doRename: # check subs format, convert to UTF-8 and convert to srt
+elif doFormat and not doLink and not getSubs and not checkCode and not doStatus and not doRename and not doTranslate:  # check subs format, convert to UTF-8 and convert to srt
     from format import partFormat
     partFormat(searchPath, recursive, extension, keep, verbose)
 
-elif doLink and doGet and not doStatus and not doFormat and not doRename: # get and link
+elif doLink and getSubs and not doStatus and not doFormat and not doRename and not doTranslate:  # get and link
     from link import partLink
     from get import partGet
-    partGet(searchPath, recursive, verbose)
+    partGet(searchPath, recursive, getSubs, verbose)
     print "----------------------------------------------------------------"
     partLink(recursive, searchPath, extension, verbose)
 
-elif doFormat and doLink and not doGet and not doStatus and not doCheck and not doRename: # format and link
+elif doFormat and doLink and not getSubs and not doStatus and not checkCode and not doRename and not doTranslate:  # format and link
     from link import partLink
     from format import partFormat
     partFormat(searchPath, recursive, extension, keep, verbose)
     print "----------------------------------------------------------------"
     partLink(recursive, searchPath, extension, verbose)
 
-elif doCheck and not doLink and not doGet and not doStatus and not doFormat and not doRename: # check language codes manually
+elif checkCode and not doLink and not getSubs and not doStatus and not doFormat and not doRename and not doTranslate:  # check language codes manually
     from check import partCheck
-    partCheck(recursive, searchPath, extension, findCode, verbose)
+    partCheck(recursive, searchPath, extension, checkCode, verbose)
     
-elif doRename and not doLink and not doStatus and not doGet and not doCheck and not doFormat: # rename video files with data from thetvdb api
+elif doRename and not doLink and not doStatus and not getSubs and not checkCode and not doFormat and not doTranslate:  # rename video files with data from thetvdb api
     from rename import partRename
     partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose)
-
+    
+elif doTranslate and not doLink and not doStatus and not getSubs and not checkCode and not doFormat and not doRename:  # translate subtitles
+    from translate import partTranslate
+    partTranslate(recursive, searchPath, extension, doTranslate, checkCode, verbose)
+    
 else:
     onError(5, 5)

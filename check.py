@@ -4,7 +4,7 @@
 
 from myFunctions import *
 
-def partCheck(recursive, searchPath, extension, findCode, verbose): # check if language code set is correct
+def partCheck(recursive, searchPath, extension, findCode, verbose):  # check if language code set is correct
     langSums = []
     subsFound = []
     num = 0
@@ -27,9 +27,9 @@ def partCheck(recursive, searchPath, extension, findCode, verbose): # check if l
                                "--- Has language code %s - %s"
                                % (existingCode['code'], existingCode['name'].lower())
                                )
-                        checkedCode = checkLang(myFile, True) # let detectlanguage.com see what language the file has
+                        checkedCode = checkLang(myFile, True)  # let detectlanguage.com see what language the file has
                         setCode = compareCodes(existingCode['code'],
-                                               checkedCode, myFile, ask) # compare existing and checked code
+                                               checkedCode, myFile, ask)  # compare existing and checked code
                         num += 1
                         langSums = foundLang(setCode)
                         
@@ -44,9 +44,9 @@ def partCheck(recursive, searchPath, extension, findCode, verbose): # check if l
                                "--- Has language code %s - %s"
                                % (existingCode['code'], existingCode['name'].lower())
                                )
-                        checkedCode = checkLang(myFile, True) # let detectlanguage.com see what language the file has
+                        checkedCode = checkLang(myFile, True)  # let detectlanguage.com see what language the file has
                         setCode = compareCodes(existingCode['code'],
-                                               checkedCode, myFile, ask) # compare existing and checked code
+                                               checkedCode, myFile, ask)  # compare existing and checked code
                         num += 1
                         langSums = foundLang(setCode)
                         
@@ -57,9 +57,9 @@ def partCheck(recursive, searchPath, extension, findCode, verbose): # check if l
                                "--- Has language code %s - %s"
                                % (existingCode['code'], existingCode['name'].lower())
                                )
-                        checkedCode = checkLang(myFile, 1) # let detectlanguage.com see what language the file has
+                        checkedCode = checkLang(myFile, 1)  # let detectlanguage.com see what language the file has
                         setCode = compareCodes(existingCode['code'],
-                                               checkedCode, myFile, ask) # compare existing and checked code
+                                               checkedCode, myFile, ask)  # compare existing and checked code
                         num += 1
                         langSums = foundLang(setCode)
                 elif findCode == "force":
@@ -70,9 +70,9 @@ def partCheck(recursive, searchPath, extension, findCode, verbose): # check if l
                                "--- Has language code %s - %s"
                                % (existingCode['code'], existingCode['name'].lower())
                                )
-                        checkedCode = checkLang(myFile, 1) # let detectlanguage.com see what language the file has
+                        checkedCode = checkLang(myFile, 1)  # let detectlanguage.com see what language the file has
                         setCode = compareCodes(existingCode['code'],
-                                               checkedCode, myFile, ask) # compare existing and checked code
+                                               checkedCode, myFile, ask)  # compare existing and checked code
                         num += 1
                         langSums = foundLang(setCode)
                     
