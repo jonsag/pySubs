@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-from myFunctions import *
+from myFunctions import (findSubFiles, fileFound, 
+                         languages)
 
 def partLink(recursive, searchPath, extension, verbose):  # finds out language of sub, inserts it, and creates link
     langSums = []

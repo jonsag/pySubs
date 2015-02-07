@@ -2,7 +2,14 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-from myFunctions import *
+import os, codecs, pysrt
+
+from BeautifulSoup import BeautifulSoup
+from pycaption import detect_format, SRTWriter, SAMIReader, DFXPReader, CaptionConverter
+from shutil import copyfile
+
+from myFunctions import (findSubFiles, 
+                         prefEncoding)
 
 def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtitles encoding and format
     noFormat = 0

@@ -2,19 +2,12 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import sys, re, ConfigParser, os, detectlanguage, codecs, pysrt, urllib, urllib2, json, string
+import sys, re, ConfigParser, os, detectlanguage
 
 from itertools import islice
 from sys import exit
-# from string import digits
-# from collections import namedtuple
-from subprocess import call
-from BeautifulSoup import BeautifulSoup  # , UnicodeDammit
-from pycaption import detect_format, SRTWriter, SAMIReader, DFXPReader, CaptionConverter  # SRTReader
-from shutil import copyfile
-from time import sleep
 
-import xml.etree.ElementTree as ET
+from subprocess import call
 
 # libraries for subliminal
 # from __future__ import unicode_literals  # python 2 only
@@ -39,6 +32,14 @@ detectRows = int(config.get('variables', 'detectRows'))  # number of rows sent t
 maxTrys = int(config.get('variables', 'maxTrys'))  # number of trys to detect language at detectlanguage.com
 
 detectlanguage.configuration.api_key = config.get('detectlanguage_com', 'api-key')  # api-key to detectlanguage.com from config file
+
+theTVdbApiKey = config.get('thetvdb', 'theTVdbApiKey')
+
+getMirrorXml = config.get('thetvdb', 'getMirrorXml')
+getTimeXML = config.get('thetvdb', 'getTimeXml')
+getSeriesXml = config.get('thetvdb', 'getSeriesXml')
+
+timeOut = int(config.get('thetvdb', 'timeOut'))
 
 def setupLanguages():
     trys = 0
@@ -77,27 +78,12 @@ prefEncoding = config.get('coding', 'prefEncoding')  # your preferred file encod
 debug = int(config.get('misc', 'debug'))
 
 def onError(errorCode, extra):
-    print "\nError:"
-    if errorCode == 1:
+    print "\nError: %s" % errorCode
+    if errorCode in (1, 2, 3, 5, 6, 7, 9):
         print extra
         usage(errorCode)
-    elif errorCode == 2:
-        print "No options given"
-        usage(errorCode)
-    elif errorCode == 3:
-        print "No program part chosen"
-        usage(errorCode)
-    elif errorCode == 4:
-        print "%s is not a valid path\n" % extra
-        sys.exit(4)
-    elif errorCode == 5:
-        print "Wrong set of options given"
-        usage(errorCode)
-    elif errorCode in (6, 7):
-        print "%s is not a valid argument" % extra
-        usage(errorCode)
-    elif errorCode == 8:
-        print extra
+    elif errorCode in (4, 8):
+        print "%s\n" % extra
         sys.exit(errorCode)
     else:
         print "\nError: Unknown"
@@ -110,39 +96,40 @@ def usage(exitCode):
     print "          Options: Set -e <extension> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
-    print "     OR\n"
+    print
     print "%s -d" % sys.argv[0]
     print "          Get available languages from 'd'etectlanguage.com, and your account status at the same place"
-    print "     OR\n"
+    print
     print "%s -g [-p <path>] [-r] [-e <extension>]" % sys.argv[0]
     print "          Search video files, check if there are any srt subtitle files with language code in the name"
     print "          If not try to find and 'g'et subtitles in any of your preferred languages"
     print "          Options: Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
-    print "     OR\n"
+    print
     print "%s -c [all|pref|<code>|force] [-p <path>] [-r]" % sys.argv[0]
     print "          'C'heck language codes set in filenames manually"
     print "          Arguments: all checks all files with languagecode set"
     print "                     pref checks all files with any of your preferred languages"
     print "                     <code>, give a valid language code"
-    print "                     force checks all, and let you decide"
+    print "                     force checks all, and lets you decide"
     print "          Options: Set -e <extension> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
-    print "     OR\n"
+    print
     print "%s -f [-k] [-p <path>] [-r] [-e <extension>]" % sys.argv[0]
     print "          Find subtitles, check 'f'ormat, and convert to UTF8, and convert to srt"
     print "          Options: Set -k to 'k'eep temporary file"
     print "                   Set -e <extension> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
-    print "     OR\n"
+    print
     print "%s -s [list|convert] [-p <path>] [-r]" % sys.argv[0]
-    print "          Arguments: list only lists subtitles files"
-    print "                     convert also converts the to srt-format if possible"
-    print "          Options: 'S'earch for posibble subtitles files"
+    print "          Arguments: list only, lists subtitles files"
+    print "                     convert also converts the file to srt-format if possible"
+    print "          Options: 'S'earch for possible subtitles files"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
+    print
     print "%s -h" % sys.argv[0]
     print "          Prints this"
     print "\n"

@@ -6,15 +6,8 @@ import urllib2
 
 import xml.etree.ElementTree as ET
 
-from myFunctions import *
-
-theTVdbApiKey = config.get('thetvdb', 'theTVdbApiKey')
-
-getMirrorXml = config.get('thetvdb', 'getMirrorXml')
-getTimeXML = config.get('thetvdb', 'getTimeXml')
-getSeriesXml = config.get('thetvdb', 'getSeriesXml')
-
-timeOut = int(config.get('thetvdb', 'timeOut'))
+from myFunctions import (findVideoFiles, findSubFiles, 
+                         getMirrorXml, getTimeXML, timeOut) 
 
 def partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose):
     videoFiles = []

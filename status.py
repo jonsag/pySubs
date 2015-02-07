@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-from myFunctions import *
+from myFunctions import (detectlanguage, 
+                         languages)
 
 def partStatus(verbose):  # check accounts status at detectlanguage.com
     print "\nAvailable languages:"

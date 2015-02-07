@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-from myFunctions import *
+from myFunctions import (findVideoFiles, hasSub, 
+                         prefLangs, langName)
 
 def partGet(searchPath, recursive, getSubs, verbose):  # search for and download subtitles for your preferred languages
     videoFiles = []

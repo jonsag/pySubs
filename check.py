@@ -2,7 +2,11 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-from myFunctions import *
+import os
+
+from myFunctions import (findSubFiles, hasLangCode, 
+                         foundLang, checkLang, compareCodes, 
+                         prefLangs, languages)
 
 def partCheck(recursive, searchPath, extension, findCode, verbose):  # check if language code set is correct
     langSums = []
