@@ -44,6 +44,7 @@ timeOut = int(config.get('thetvdb', 'timeOut'))
 def setupLanguages():
     trys = 0
     
+    print "--- Getting languages..."
     while True:
         trys += 1
         if trys > maxTrys:
@@ -51,7 +52,7 @@ def setupLanguages():
         try:
             languages = detectlanguage.languages()  # get available languages from detectlanguage.com
         except:
-            print "*** Could not connect to detectlangiage.com\n    Trying again"
+            print "*** Could not connect to detectlanguage.com\n    Trying again"
         else:
             languages.append({u'code': u'xx', u'name': u'UNKNOWN'})
             break
@@ -91,22 +92,24 @@ def onError(errorCode, extra):
 def usage(exitCode):
     print "\nUsage:"
     print "----------------------------------------"
-    print "%s -l [-p <path>] [-r] [-e <extension>]" % sys.argv[0]
+    print "%s -l [-p <path>] [-r] [-m <mask>] [-e <extension>]" % sys.argv[0]
     print "          Find files, set language code if none, and create symbolic 'l'ink to them without language code"
     print "          Options: Set -e <extension> to set 's'uffix to search for"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
+    print "                   Set -m <mask> to only include files matching your mask"
     print
     print "%s -d" % sys.argv[0]
     print "          Get available languages from 'd'etectlanguage.com, and your account status at the same place"
     print
-    print "%s -g [-p <path>] [-r] [-e <extension>]" % sys.argv[0]
+    print "%s -g all|pref|<lang> [-p <path>] [-r] [-m <mask>] [-e <extension>]" % sys.argv[0]
     print "          Search video files, check if there are any srt subtitle files with language code in the name"
     print "          If not try to find and 'g'et subtitles in any of your preferred languages"
     print "          Options: Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
+    print "                   Set -m <mask> to only include files matching your mask"
     print
-    print "%s -c [all|pref|<code>|force] [-p <path>] [-r]" % sys.argv[0]
+    print "%s -c all|pref|<code>|force [-p <path>] [-r]" % sys.argv[0]
     print "          'C'heck language codes set in filenames manually"
     print "          Arguments: all checks all files with languagecode set"
     print "                     pref checks all files with any of your preferred languages"
@@ -120,13 +123,6 @@ def usage(exitCode):
     print "          Find subtitles, check 'f'ormat, and convert to UTF8, and convert to srt"
     print "          Options: Set -k to 'k'eep temporary file"
     print "                   Set -e <extension> to set 's'uffix to search for"
-    print "                   Set -r to search 'r'ecursively"
-    print "                   Set -p <path> to set other 'p'ath than current"
-    print
-    print "%s -s [list|convert] [-p <path>] [-r]" % sys.argv[0]
-    print "          Arguments: list only, lists subtitles files"
-    print "                     convert also converts the file to srt-format if possible"
-    print "          Options: 'S'earch for possible subtitles files"
     print "                   Set -r to search 'r'ecursively"
     print "                   Set -p <path> to set other 'p'ath than current"
     print
@@ -417,18 +413,41 @@ def isVideo(myFile, extension):
         result = True
     return result
 
-def hasSub(myFile, path, subDownloads, verbose):
+def hasSub(myFile, path, subDownloads, getSubs, verbose):
     subName = os.path.splitext(myFile)[0]
     origWD = os.getcwd()  # current working directory
     os.chdir(path)  # change working directory to where the videos are
-    for lang in prefLangs:
-        subNameLang = "%s.%s.%s" % (subName, lang, "srt")
+    
+    if getSubs == "pref":
+        print "--- Getting subs in your preferred languages..."
+        for lang in prefLangs:
+            subNameLang = "%s.%s.%s" % (subName, lang, "srt")
+            if os.path.isfile(subNameLang):
+                print "--- Already has %s subtitles" % langName(lang).lower()
+                subDownloads = foundLang("%s - present" % lang)
+            else:
+                print "*** Has no %s subtitles" % langName(lang).lower()
+                subDownloads = downloadSub(myFile, lang, path)
+    elif getSubs == "all":
+        print "--- Getting subs in all languages..."
+        for lang in languages:
+            subNameLang = "%s.%s.%s" % (subName, lang['code'], "srt")
+            if os.path.isfile(subNameLang):
+                print "--- Already has %s subtitles" % langName(lang['code']).lower()
+                subDownloads = foundLang("%s - present" % lang['code'])
+            else:
+                print "*** Has no %s subtitles" % langName(lang['code']).lower()
+                subDownloads = downloadSub(myFile, lang['code'], path)
+    else:
+        print "--- Getting %s subs" % langName(getSubs).lower()
+        subNameLang = "%s.%s.%s" % (subName, getSubs, "srt")
         if os.path.isfile(subNameLang):
-            print "--- Already has %s subtitles" % langName(lang).lower()
-            subDownloads = foundLang("%s - present" % lang)
+            print "--- Already has %s subtitles" % langName(getSubs).lower()
+            subDownloads = foundLang("%s - present" % getSubs)
         else:
-            print "*** Has no %s subtitles" % langName(lang).lower()
-            subDownloads = downloadSub(myFile, lang, path)
+            print "*** Has no %s subtitles" % langName(getSubs).lower()
+            subDownloads = downloadSub(myFile, getSubs, path)
+        
     os.chdir(origWD)  # change working directory back
     return subDownloads
 

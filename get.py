@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
+import os
+
 from myFunctions import (findVideoFiles, hasSub, 
                          prefLangs, langName)
 
-def partGet(searchPath, recursive, getSubs, verbose):  # search for and download subtitles for your preferred languages
+def partGet(searchPath, recursive, getSubs, fileMask, verbose):  # search for and download subtitles for your preferred languages
     videoFiles = []
     subDownloads = []
     
@@ -14,7 +16,10 @@ def partGet(searchPath, recursive, getSubs, verbose):  # search for and download
     if videoFiles:
         for myFile in videoFiles:
             print "\n%s" % myFile
-            subDownloads = hasSub(myFile, searchPath, subDownloads, verbose)  # go ahead processing the video file
+            if fileMask in os.path.basename(myFile):
+                subDownloads = hasSub(myFile, searchPath, subDownloads, getSubs, verbose)  # go ahead processing the video file
+            else:
+                print "*** File name does not match the mask"
 
     if subDownloads:
         print "\nDownloaded subtitles:"

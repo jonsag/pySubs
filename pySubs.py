@@ -19,11 +19,11 @@ from myFunctions import (onError, usage,
 
 ##### handle arguments #####
 try:
-    myopts, args = getopt.getopt(sys.argv[1:], 'p:m:re:ldg:c:ft:n:skhv' ,
+    myopts, args = getopt.getopt(sys.argv[1:], 'p:m:re:ldg:c:ft:n:s:khv' ,
                                  ['path=', 'mask=', 'recursive', 'extension=',
                                   'link', 'detectlang', 'get=',
                                   'check=', 'format', 'translate=',
-                                  'rename=', 'search',
+                                  'rename=', 'search=',
                                   'keep', 'help', 'verbose'])
 
 except getopt.GetoptError as e:
@@ -125,26 +125,26 @@ else:
 
 ########################################## choose what to run ##########################################
 if doLink and not doStatus and not getSubs and not checkCode and not doFormat and not doRename and not doTranslate:  # find language in subs and create links
-    partLink(recursive, searchPath, extension, verbose)
+    partLink(recursive, searchPath, extension, fileMask, verbose)
 
 elif doStatus and not doLink and not getSubs and not checkCode and not doFormat  and not doRename and not doTranslate:  # status at detectlanguage.com
     partStatus(verbose)
 
 elif getSubs and not doLink and not doStatus and not checkCode and not doFormat and not doRename and not doTranslate:  # get subs for video files
-    partGet(searchPath, recursive, getSubs, verbose)
+    partGet(searchPath, recursive, getSubs, fileMask, verbose)
 
 elif doFormat and not doLink and not getSubs and not checkCode and not doStatus and not doRename and not doTranslate:  # check subs format, convert to UTF-8 and convert to srt
     partFormat(searchPath, recursive, extension, keep, verbose)
 
 elif doLink and getSubs and not doStatus and not doFormat and not doRename and not doTranslate:  # get and link
-    partGet(searchPath, recursive, getSubs, verbose)
+    partGet(searchPath, recursive, getSubs, fileMask, verbose)
     print "----------------------------------------------------------------"
-    partLink(recursive, searchPath, extension, verbose)
+    partLink(recursive, searchPath, extension, fileMask, verbose)
 
 elif doFormat and doLink and not getSubs and not doStatus and not checkCode and not doRename and not doTranslate:  # format and link
     partFormat(searchPath, recursive, extension, keep, verbose)
     print "----------------------------------------------------------------"
-    partLink(recursive, searchPath, extension, verbose)
+    partLink(recursive, searchPath, extension, fileMask, verbose)
 
 elif checkCode and not doLink and not getSubs and not doStatus and not doFormat and not doRename and not doTranslate:  # check language codes manually
     partCheck(recursive, searchPath, extension, checkCode, verbose)
