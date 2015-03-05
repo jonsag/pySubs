@@ -551,7 +551,7 @@ def findVideoFiles(searchPath, recursive, videoFiles, verbose):
                 
     print "--- Number of video files in %s: %d\n" % (searchPath, num)
     
-    return videoFiles.sort()
+    return (videoFiles.sort())
 
 def findSubFiles(searchPath, recursive, extension, subFiles, findCode, verbose):
     num = 0
@@ -579,7 +579,7 @@ def findSubFiles(searchPath, recursive, extension, subFiles, findCode, verbose):
                 
     print "--- Number of subtitle files in %s: %d\n" % (searchPath, num)
 
-    return subFiles.sort()
+    return (subFiles.sort())
 
 def continueWithProcess(myFile, keepOld, reDownload, verbose):
     number = 0
