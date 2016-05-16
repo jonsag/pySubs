@@ -11,9 +11,11 @@ from subprocess import call
 
 # libraries for subliminal
 # from __future__ import unicode_literals  # python 2 only
-# from babelfish import Language
+from babelfish import Language
 # from datetime import timedelta
 # import subliminal
+from subliminal import (download_best_subtitles, region, save_subtitles, Video, 
+                        list_subtitles, compute_score)
 
 # starting up some variables
 # num = 0
@@ -427,7 +429,7 @@ def hasSub(myFile, path, subDownloads, getSubs, verbose):
                 subDownloads = foundLang("%s - present" % lang)
             else:
                 print "*** Has no %s subtitles" % langName(lang).lower()
-                subDownloads = downloadSub(myFile, lang, path)
+                subDownloads = downloadSub(myFile, lang, path, verbose)
     elif getSubs == "all":
         print "--- Getting subs in all languages..."
         for lang in languages:
@@ -437,7 +439,7 @@ def hasSub(myFile, path, subDownloads, getSubs, verbose):
                 subDownloads = foundLang("%s - present" % lang['code'])
             else:
                 print "*** Has no %s subtitles" % langName(lang['code']).lower()
-                subDownloads = downloadSub(myFile, lang['code'], path)
+                subDownloads = downloadSub(myFile, lang['code'], path, verbose)
     else:
         print "--- Getting %s subs" % langName(getSubs).lower()
         subNameLang = "%s.%s.%s" % (subName, getSubs, "srt")
@@ -446,22 +448,49 @@ def hasSub(myFile, path, subDownloads, getSubs, verbose):
             subDownloads = foundLang("%s - present" % getSubs)
         else:
             print "*** Has no %s subtitles" % langName(getSubs).lower()
-            subDownloads = downloadSub(myFile, getSubs, path)
+            subDownloads = downloadSub(myFile, getSubs, path, verbose)
         
     os.chdir(origWD)  # change working directory back
     return subDownloads
 
-def downloadSub(myFile, lang, path):
+def downloadSub(myFile, lang, path, verbose):
+    cli = False
     print "--- Trying to download..."
     origWD = os.getcwd()  # current working directory
     os.chdir(path)  # change working directory to where the videos are
-    if call(["subliminal", "-q", "-l", lang, "--", myFile]):  # try to download the subtitles
-        print "*** Could not find %s subtitles" % langName(lang).lower()
-        subDownloads = foundLang("%s - not found" % lang)
+    if cli == True:
+        # old subliminal:
+        #if call(["subliminal", "-q", "-l", lang, "--", myFile]):  # try to download the subtitles
+        # new subliminal
+        if call(["subliminal", "download", "-l", lang, "--", myFile]):  # try to download the subtitles
+            print "*** Could not find %s subtitles" % langName(lang).lower()
+            subDownloads = foundLang("%s - not found" % lang)
+        else:
+            print "--- Downloaded %s subtitles" % langName(lang).lower()
+            subDownloads = foundLang(lang)  # sending language code to be added
+            # subName = "%s.%s.%s" % (os.path.splitext(myFile)[0], lang, "srt")
     else:
-        print "--- Downloaded %s subtitles" % langName(lang).lower()
-        subDownloads = foundLang(lang)  # sending language code to be added
-        # subName = "%s.%s.%s" % (os.path.splitext(myFile)[0], lang, "srt")
+        video = Video.fromname(myFile)
+        if verbose:
+            print "--- Checking subtititles for \n    %s" % video
+        # configure the cache
+        #region.configure('dogpile.cache.dbm', arguments={'filename': 'cachefile.dbm'})
+        my_region = region.configure('dogpile.cache.memory', replace_existing_backend=True)
+        if verbose:
+            print "--- Downloading best subtitle..."
+        #newSubtitles = download_best_subtitles(video, {Language('eng')})
+        best_subtitles = download_best_subtitles([video], {lang}, providers=['podnapisi'])
+        try:
+            best_subtitle = best_subtitles[video][0]
+        except:
+            print "*** Could not find %s subtitles" % langName(lang).lower()
+            subDownloads = foundLang("%s - not found" % lang)
+        else:
+            print "--- Downloaded %s subtitles" % langName(lang).lower()
+            subDownloads = foundLang(lang)  # sending language code to be added
+            if verbose:
+                print "--- Saving subtitles..."
+            save_subtitles(video, [best_subtitle])
     os.chdir(origWD)  # change working directory back
     return subDownloads
 
