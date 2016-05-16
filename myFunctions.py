@@ -475,11 +475,12 @@ def downloadSub(myFile, lang, path, verbose):
             print "--- Checking subtititles for \n    %s" % video
         # configure the cache
         #region.configure('dogpile.cache.dbm', arguments={'filename': 'cachefile.dbm'})
-        my_region = region.configure('dogpile.cache.memory', replace_existing_backend=True)
+        my_region = region.configure('dogpile.cache.memory', arguments={'filename': 'cachefile.dbm'}, replace_existing_backend=True)
         if verbose:
-            print "--- Downloading best subtitle..."
-        #newSubtitles = download_best_subtitles(video, {Language('eng')})
-        best_subtitles = download_best_subtitles([video], {lang}, providers=['podnapisi'])
+            print "--- Searching for best subtitle..."
+        #best_subtitles = download_best_subtitles([video], {lang}, providers=['podnapisi'])
+        best_subtitles = download_best_subtitles([video], {lang}, providers=['podnapisi', 'opensubtitles', 'addic7ed'])
+        #best_subtitles = download_best_subtitles([video], {lang})
         try:
             best_subtitle = best_subtitles[video][0]
         except:
@@ -487,6 +488,8 @@ def downloadSub(myFile, lang, path, verbose):
             subDownloads = foundLang("%s - not found" % lang)
         else:
             print "--- Downloaded %s subtitles" % langName(lang).lower()
+            #if verbose:
+            #    print "--- Score for this subtitle is %s" % compute_score(best_subtitle, video)
             subDownloads = foundLang(lang)  # sending language code to be added
             if verbose:
                 print "--- Saving subtitles..."
