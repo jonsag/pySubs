@@ -245,7 +245,7 @@ def emptyEntries(myFile, keep, verbose):
         print "--- %s entries total" % entries
 
     for entryNo in range(0, entries):  # count entry numbers up to number of entries
-        subEntry = "%s" % subs[entryNo]  # read single entry
+        subEntry = u"%s" % subs[entryNo]  # read single entry
         lines = subEntry.split('\n')  # split entry into lines
         lineNo = 0  # set first line to 0
         emptyEntry = False
@@ -290,7 +290,7 @@ def numbering(myFile, keep, verbose):
     entries = len(subs)  # count entries
 
     for entryNo in range(0, entries):  # count entry numbers up to number of entries
-        subEntry = "%s" % subs[entryNo]  # read single entry
+        subEntry = u"%s" % subs[entryNo]  # read single entry
         lines = subEntry.split('\n')  # split entry into lines
         if entryNo + 1 != int(lines[0]):  # entry number does not match real numbering
             wrongNumbering = True

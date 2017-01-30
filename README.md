@@ -3,12 +3,14 @@ Tools to help with naming of subtitle files, and downloading subtitles.
 Requirements:
 ----------------------------------------------
   Python modules:
+  	* babelfish			python-babelfish
+  	* detectlanguage						pip install detectlanguage
+  	* goslate
+  	* msmt
+    * mstranslate							pip install mstranslate
     * pysrt
-    * pycaption
-    * subliminal
-    * msmt
-    * mstranslate
-    * goslate
+    * pycaption								pip install pycaption
+    * subliminal		python-subliminal	pip install --upgrade subliminal
     
 Usage:
 -----------------------------------------------
