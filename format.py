@@ -303,7 +303,7 @@ def numbering(myFile, keep, verbose):
         subs = pysrt.open("%s.wrongNumbering" % myFile, encoding='utf-8')  # open sub with pysrt as utf-8
         entries = len(subs)  # count entries
         for entryNo in range(0, entries):  # count entry numbers up to number of entries
-            subEntry = "%s" % subs[entryNo]  # read single entry
+            subEntry = u"%s" % subs[entryNo]  # read single entry
             lines = subEntry.split('\n')  # split entry into lines
             noLines = len(lines)  # number of lines in each entry
             for line in range(0, noLines):
