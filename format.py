@@ -5,7 +5,7 @@
 import os, codecs, pysrt
 
 from BeautifulSoup import BeautifulSoup
-from pycaption import detect_format, SRTWriter, SAMIReader, DFXPReader, CaptionConverter
+from pycaption import detect_format, SRTWriter, SAMIReader, DFXPReader, WebVTTReader, CaptionConverter
 from shutil import copyfile
 
 from myFunctions import (findSubFiles, 
@@ -17,6 +17,7 @@ def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtit
     samiFormat = 0
     dfxpFormat = 0
     kanal5Format = 0
+    webvttFormat = 0
     wrongEncoding = 0
     wrongNumbering = 0
     # wrongFormat = 0
@@ -69,8 +70,12 @@ def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtit
                     emptyEntry += 1
                 if numbering(myFile, keep, verbose):  # check if numbering is correct, if not correct it
                     wrongNumbering += 1
-
-    if noFormat + srtFormat + samiFormat + kanal5Format > 0:
+            elif myFormat == "webvtt":
+                print "*** Webvtt format"
+                webvttFormat += 1
+                webvttToSrt(myFile, keep, verbose)  # convert from WEBVTT to SRT
+                
+    if noFormat + srtFormat + samiFormat + kanal5Format + webvttFormat > 0:
         print "\nFormats:"
         if noFormat > 0:
             print "Not detected: %s" % noFormat
@@ -82,6 +87,8 @@ def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtit
             print "dfxp: %s" % dfxpFormat
         if kanal5Format > 0:
             print "kanal5: %s" % kanal5Format
+        if webvttFormat > 0:
+            print "webvtt: %s" % webvttFormat
         print
 
     if wrongEncoding > 0:
@@ -155,6 +162,8 @@ def checkFormat(myFile, verbose):
             myFormat = "sami"
         elif "dfxp" in str(reader):
             myFormat = "dfxp"
+        elif "webvtt" in str(reader):
+            myFormat = "webvtt"    
     else:
         if verbose:
             print "*** pycaption could not detect format"
@@ -204,6 +213,24 @@ def dfxpToSrt(myFile, keep, verbose):
             print "--- Deleting temporary file %s.dfxp" % myFile
         os.remove("%s.dfxp" % myFile)
         
+def webvttToSrt(myFile, keep, verbose):
+    if verbose:
+        print "--- Renaming to %s.webvtt" % myFile
+    os.rename(myFile, "%s.webvtt" % myFile)
+    print "--- Converting to srt"
+    sourceFile = open("%s.webvtt" % myFile)  # open copy as source
+    caps = sourceFile.read()  # read source
+    converter = CaptionConverter()  # set pycaptions converter
+    converter.read(caps, WebVTTReader())  # read sami
+    with open(myFile, "w") as targetFile:  # open target
+        targetFile.write(converter.write(SRTWriter()))  # write target
+    sourceFile.close()  # close source
+    targetFile.close()  # close target
+    if not keep:
+        if verbose:
+            print "--- Deleting temporary file %s.webvtt" % myFile
+        os.remove("%s.webvtt" % myFile)
+        
 def kanal5ToSrt(myFile, keep, verbose):
     import datetime
     
@@ -232,7 +259,7 @@ def kanal5ToSrt(myFile, keep, verbose):
     if not keep:
         if verbose:
             print "--- Deleting temporary file %s.kanal5" % myFile
-        os.remove("%s.kanal5" % myFile)
+        os.remove("%s.kanal5" % myFile)    
 
 def emptyEntries(myFile, keep, verbose):
     emptyEntryFound = False
