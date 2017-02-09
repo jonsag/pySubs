@@ -37,6 +37,8 @@ def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtit
                 wrongEncoding += 1
 
             myFormat = checkFormat(myFile, verbose)  # check format
+            if verbose:
+                print "--- Format: %s" % myFormat
             if not myFormat:
                 print "*** Could not detect format"
                 noFormat += 1
