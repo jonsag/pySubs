@@ -218,11 +218,11 @@ def webvttToSrt(myFile, keep, verbose):
         print "--- Renaming to %s.webvtt" % myFile
     os.rename(myFile, "%s.webvtt" % myFile)
     print "--- Converting to srt"
-    sourceFile = open("%s.webvtt" % myFile)  # open copy as source
+    sourceFile = codecs.open("%s.webvtt" % myFile, "r", encoding="utf8")  # open copy as source
     caps = sourceFile.read()  # read source
     converter = CaptionConverter()  # set pycaptions converter
     converter.read(caps, WebVTTReader())  # read sami
-    with open(myFile, "w") as targetFile:  # open target
+    with codecs.open(myFile, "w", encoding="utf8") as targetFile:  # open target
         targetFile.write(converter.write(SRTWriter()))  # write target
     sourceFile.close()  # close source
     targetFile.close()  # close target
