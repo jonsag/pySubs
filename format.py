@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import os, codecs, pysrt
+import os, codecs, pysrt, sys
 
 from BeautifulSoup import BeautifulSoup
 from pycaption import detect_format, SRTWriter, SAMIReader, DFXPReader, WebVTTReader, CaptionConverter
 from shutil import copyfile
 
-from myFunctions import (findSubFiles, 
+from myFunctions import (findSubFiles, runProcess,runProcessReturnOutput, 
                          prefEncoding)
 
 def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtitles encoding and format
@@ -18,6 +18,7 @@ def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtit
     dfxpFormat = 0
     kanal5Format = 0
     webvttFormat = 0
+    dcsubFormat = 0
     wrongEncoding = 0
     wrongNumbering = 0
     # wrongFormat = 0
@@ -74,6 +75,10 @@ def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtit
                 print "*** Webvtt format"
                 webvttFormat += 1
                 webvttToSrt(myFile, keep, verbose)  # convert from WEBVTT to SRT
+            elif myFormat == "dcsub":
+                print "*** DCSub format"
+                dcsubFormat += 1
+                dcsubToSrt(myFile, keep, verbose)  # convert from DCSUB to SRT
                 
     if noFormat + srtFormat + samiFormat + kanal5Format + webvttFormat > 0:
         print "\nFormats:"
@@ -89,6 +94,8 @@ def partFormat(searchPath, recursive, extension, keep, verbose):  # check subtit
             print "kanal5: %s" % kanal5Format
         if webvttFormat > 0:
             print "webvtt: %s" % webvttFormat
+        if dcsubFormat > 0:
+            print "dcsub: %s" % dcsubFormat 
         print
 
     if wrongEncoding > 0:
@@ -167,15 +174,39 @@ def checkFormat(myFile, verbose):
     else:
         if verbose:
             print "*** pycaption could not detect format"
-            print "--- Checking if it's kanal5's own format..."
-        if caps.startswith('[{"startMillis":'):
+            print "--- Checking if it's DCSub..."
+        DCSub = checkIfDCSub(myFile, verbose)
+        if DCSub:
             if verbose:
-                print "--- It probably is kanal5 format"
-            myFormat = "kanal5"
+                print "--- It probably is DCSub format"
+            myFormat = "dcsub"
+        else:
+            if verbose:
+                print "--- Checking if it's kanal5's own format..."
+            if caps.startswith('[{"startMillis":'):
+                if verbose:
+                    print "--- It probably is kanal5 format"
+                myFormat = "kanal5"
     
     capsFile.close()  # close sub
     
     return myFormat
+
+def checkIfDCSub(myFile, verbose):
+    DCSub = False
+    
+    if verbose:
+        print "--- Extracting second line..."
+    with open(myFile) as capsFile:
+        for lineNo, line in enumerate(capsFile):
+            if lineNo == 1:
+                if verbose:
+                    print "--- Second line reads: %s" % line.rstrip("\n")
+                if "dcsub" in line.lower():
+                    DCSub = True
+                    #break
+                
+    return DCSub
 
 def samiToSrt(myFile, keep, verbose):
     if verbose:
@@ -260,6 +291,38 @@ def kanal5ToSrt(myFile, keep, verbose):
         if verbose:
             print "--- Deleting temporary file %s.kanal5" % myFile
         os.remove("%s.kanal5" % myFile)    
+        
+def dcsubToSrt(myFile, keep, verbose):
+    if verbose:
+        print "--- Renaming to %s.dcsub" % myFile
+    os.rename(myFile, "%s.dcsub" % myFile)
+    print "--- Converting to srt"
+    #sourceFile = codecs.open("%s.dcsub" % myFile, "r", encoding="utf8")  # open copy as source
+    #caps = sourceFile.read()  # read source
+    #converter = CaptionConverter()  # set pycaptions converter
+    #converter.read(caps, WebVTTReader())  # read sami
+    #with codecs.open(myFile, "w", encoding="utf8") as targetFile:  # open target
+    #    targetFile.write(converter.write(SRTWriter()))  # write target
+    #sourceFile.close()  # close source
+    #targetFile.close()  # close target
+    #cmd = 'dcsubtitle_to_srt.py "%s" > "%s"' % ("%s.dcsub" % myFile, myFile)
+    cmd = 'dcsubtitle_to_srt.py "%s"' % ("%s.dcsub" % myFile)
+    output = runProcessReturnOutput(cmd, verbose)
+    #subs = output[0].split("\n")
+    #with codecs.open(myFile, "w", encoding="utf8") as targetFile:  # open target
+    with open(myFile, "w") as targetFile:  # open target
+        #for line in subs:
+        #    print line
+        #    targetFile.write(u"%s\n" % line)  # write target
+        targetFile.write(output[0])
+    targetFile.close()  # close target
+
+    
+    
+    if not keep:
+        if verbose:
+            print "--- Deleting temporary file %s.dcsub" % myFile
+        os.remove("%s.dcsub" % myFile)
 
 def emptyEntries(myFile, keep, verbose):
     emptyEntryFound = False

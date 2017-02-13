@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import sys, re, ConfigParser, os, detectlanguage
+import sys, re, ConfigParser, os, detectlanguage, shlex
 
 from itertools import islice
 from sys import exit
 
-from subprocess import call
+from subprocess import call, Popen, PIPE
 
 # libraries for subliminal
 # from __future__ import unicode_literals  # python 2 only
@@ -643,6 +643,44 @@ def continueWithProcess(myFile, keepOld, reDownload, verbose):
             continueProcess = False
             
     return continueProcess
+
+def runProcess(cmd, verbose):
+    if verbose:
+        print "Command: %s\n" % cmd
+                        
+    args = shlex.split(cmd)
+    
+    process = Popen(args, stdout=PIPE)    
+    process.communicate() 
+    exitCode = process.wait()
+
+    if verbose:
+        print "Exit code: %s" % exitCode
+ 
+    return exitCode
+
+def runProcessReturnOutput(cmd, verbose):
+    if verbose:
+        print "Command: %s\n" % cmd
+                        
+    args = shlex.split(cmd)
+    
+    process = Popen(args, stdout=PIPE)    
+    output = process.communicate() 
+    exitCode = process.wait()
+
+    if verbose:
+        print "Output from command:"
+        print output
+        print "Exit code: %s" % exitCode
+ 
+    return output
+    
+    
+    
+    
+    
+    
     
     
     
