@@ -213,14 +213,14 @@ def samiToSrt(myFile, keep, verbose):
         print "--- Renaming to %s.sami" % myFile
     os.rename(myFile, "%s.sami" % myFile)
     print "--- Converting to srt"
-    sourceFile = open("%s.sami" % myFile)  # open copy as source
-    caps = sourceFile.read()  # read source
-    converter = CaptionConverter()  # set pycaptions converter
-    converter.read(caps, SAMIReader())  # read sami
-    with open(myFile, "w") as targetFile:  # open target
-        targetFile.write(converter.write(SRTWriter()))  # write target
-    sourceFile.close()  # close source
-    targetFile.close()  # close target
+    with codecs.open("%s.sami" % myFile, "r", encoding="utf8") as sourceFile:
+        caps = sourceFile.read()  # read source                                               
+    converter = CaptionConverter()  # set pycaptions converter                                
+    converter.read(caps, SAMIReader())  # read sami                                           
+    with codecs.open(myFile, "w", encoding="utf8") as targetFile:  # open target              
+        targetFile.write(converter.write(SRTWriter()))  # write target                        
+    sourceFile.close()  # close source                                                        
+    targetFile.close()  # close target                                                        
     if not keep:
         if verbose:
             print "--- Deleting temporary file %s.sami" % myFile
@@ -297,23 +297,9 @@ def dcsubToSrt(myFile, keep, verbose):
         print "--- Renaming to %s.dcsub" % myFile
     os.rename(myFile, "%s.dcsub" % myFile)
     print "--- Converting to srt"
-    #sourceFile = codecs.open("%s.dcsub" % myFile, "r", encoding="utf8")  # open copy as source
-    #caps = sourceFile.read()  # read source
-    #converter = CaptionConverter()  # set pycaptions converter
-    #converter.read(caps, WebVTTReader())  # read sami
-    #with codecs.open(myFile, "w", encoding="utf8") as targetFile:  # open target
-    #    targetFile.write(converter.write(SRTWriter()))  # write target
-    #sourceFile.close()  # close source
-    #targetFile.close()  # close target
-    #cmd = 'dcsubtitle_to_srt.py "%s" > "%s"' % ("%s.dcsub" % myFile, myFile)
     cmd = 'dcsubtitle_to_srt.py "%s"' % ("%s.dcsub" % myFile)
     output = runProcessReturnOutput(cmd, verbose)
-    #subs = output[0].split("\n")
-    #with codecs.open(myFile, "w", encoding="utf8") as targetFile:  # open target
     with open(myFile, "w") as targetFile:  # open target
-        #for line in subs:
-        #    print line
-        #    targetFile.write(u"%s\n" % line)  # write target
         targetFile.write(output[0])
     targetFile.close()  # close target
 
