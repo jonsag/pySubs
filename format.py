@@ -330,7 +330,9 @@ def emptyEntries(myFile, keep, verbose):
 
         for row in lines:  # read lines one by one
             if lineNo == 2:
-                if row == "&nbsp;" or not row:  # if third line is &nbsp; or empty
+                if (row == "&nbsp;" 
+                    or row == "&nbsp" 
+                    or not row):  # if third line is &nbsp; or empty
                     emptyEntry = True
             if emptyEntry and lineNo == 3 and row == "":  # if third line is &nbsp; and fourth line is empty
                 emptyEntryFound = True
