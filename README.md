@@ -3,24 +3,25 @@ Tools to help with naming of subtitle files, and downloading subtitles.
 Requirements:
 ----------------------------------------------
   Python modules:  
-  	* babelfish			python-babelfish  
-  	* detectlanguage						pip install detectlanguage  
-  	* goslate  
-  	* msmt  
-    * mstranslate							pip install mstranslate  
-    * pysrt  
-    * pycaption								pip install pycaption  
-    * subliminal		python-subliminal	pip install --upgrade subliminal  
+  	* babelfish,		python-babelfish  
+  	* detectlanguage,						pip install detectlanguage  
+  	* goslate,  
+  	* msmt,  
+    * mstranslate,							pip install mstranslate  
+    * pysrt,  
+    * pycaption,							pip install pycaption  
+    * subliminal,		python-subliminal,	pip install --upgrade subliminal  
     
     
+    
+Install dc subtitle module
+----------------------------------------------
 Download 'dcsubtitle_to_srt.py'  
 from http://codegists.com/snippet/python/dcsubtitle_to_srtpy_naglis_python  
 or https://gist.github.com/naglis/ee95a03d8f84d36fe2c3  
 or copy and paste this to said file,  
 put it in your PATH and make it executable:  
 	
-Code
------
 	#!/usr/bin/env python3  
 	# -*- coding: utf-8 -*-  
 	# Encoding: UTF-8  
@@ -90,8 +91,7 @@ Code
 	 
 	if __name__ == '__main__':  
 	    main()  
------  
-End code  
+
     
 Usage:  
 -----------------------------------------------
