@@ -12,9 +12,10 @@ Requirements:
     * pycaption,							pip install pycaption  
     * subliminal,		python-subliminal,	pip install --upgrade subliminal  
     
-Register account at detectlanguage,com:
+Register account at detectlanguage.com:
 ----------------------------------------------    
-Visit detectlanguage.com  
+Visit detectlanguage.com, and register an account  
+You can get one for free  
 Enter your new API-key in config.ini  
 The one already in config will not work  
 
