@@ -12,8 +12,12 @@ Requirements:
     * pycaption,							pip install pycaption  
     * subliminal,		python-subliminal,	pip install --upgrade subliminal  
     
-    
-    
+Register account at detectlanguage,com:
+----------------------------------------------    
+Visit detectlanguage.com  
+Enter your new API-key in config.ini  
+The one already in config will not work  
+
 Install dc subtitle module
 ----------------------------------------------
 Download 'dcsubtitle_to_srt.py'  
