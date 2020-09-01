@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import os, codecs, re, sys, urllib2
+import os, codecs, re, sys, urllib.request, urllib.error, urllib.parse
 
 import xml.etree.ElementTree as ET
 
@@ -30,7 +30,7 @@ def partTranslate(recursive, searchPath, extension, translateEngine, checkCode, 
     # print gs.translate('hello world', 'sv')
     # sys.exit()
     
-    print "--- Will try to translate into %s" % langName(prefLangs[0]).lower()
+    print("--- Will try to translate into %s" % langName(prefLangs[0]).lower())
     
     # print sys.getdefaultencoding()
     
@@ -53,7 +53,7 @@ def partTranslate(recursive, searchPath, extension, translateEngine, checkCode, 
 
     if subFiles: 
         for myFile in subFiles:
-            print "\n%s" % myFile
+            print("\n%s" % myFile)
             
             if (checkCoding(os.path.join(searchPath, myFile), verbose) == prefEncoding):  # or
                 # checkCoding(os.path.join(searchPath, myFile), verbose) == "ascii"):
@@ -62,20 +62,20 @@ def partTranslate(recursive, searchPath, extension, translateEngine, checkCode, 
                 codingOK = False
             
             if codingOK and checkFormat(os.path.join(searchPath, myFile), verbose) == "srt":
-                print "--- Correct coding and format"
+                print("--- Correct coding and format")
                 existingCode = hasLangCode(os.path.join(searchPath, myFile))
                 if existingCode['code'] == prefLangs[0]:
-                    print "--- Already has langcode %s" % prefLangs[0]
+                    print("--- Already has langcode %s" % prefLangs[0])
                     existingLanguage = checkLang(os.path.join(searchPath, myFile), verbose)
                     if existingLanguage == prefLangs[0]:
-                        print "--- detectlanguage.com agrees"
+                        print("--- detectlanguage.com agrees")
                     else:
-                        print "*** detectlanguage.com does not agree"
+                        print("*** detectlanguage.com does not agree")
                         translate(os.path.join(searchPath, myFile), existingLanguage, prefLangs[0], translateEngine, verbose)
                 else:
                     translate(os.path.join(searchPath, myFile), existingCode['code'], prefLangs[0], translateEngine, verbose)
             else:
-                print "*** Incorrect coding or format"
+                print("*** Incorrect coding or format")
                 
 def translate(myFile, fromLanguage, toLanguage, translateEngine, verbose):
     textLines = []
@@ -84,17 +84,17 @@ def translate(myFile, fromLanguage, toLanguage, translateEngine, verbose):
     stage = ""
     lineNo = 0
 
-    print "--- Trying to translate from %s to %s using %s..." % (langName(fromLanguage).lower(),
+    print("--- Trying to translate from %s to %s using %s..." % (langName(fromLanguage).lower(),
                                                                  langName(toLanguage).lower(),
-                                                                 translateEngine)
+                                                                 translateEngine))
     if translateEngine == "msmt":
         if verbose:
-            print "--- Generating token..."
+            print("--- Generating token...")
         msToken = msmt.get_access_token(msClientID, msClientSecret)
         
     if translateEngine == "ms":
         if verbose:
-            print "--- Generating token..."
+            print("--- Generating token...")
         msT = MSTranslate(msClientID, msClientSecret)
     
     with codecs.open(myFile, encoding=prefEncoding) as inFile:  # open file
@@ -105,13 +105,13 @@ def translate(myFile, fromLanguage, toLanguage, translateEngine, verbose):
         if len(textLines) > 0 and inLine == "":
             for textLine in textLines:
                 if verbose:
-                    print "old - %s" % textLine
+                    print("old - %s" % textLine)
             if verbose:
                 if lineNo == 1:
                     countWord = "line"
                 else:
                     countWord = "lines"
-                print "--- Sending %d %s to %s..." % (lineNo, countWord, translateEngine)
+                print("--- Sending %d %s to %s..." % (lineNo, countWord, translateEngine))
                
             if translateEngine == "yandex":
                 newLines = yandexXMLTranslate(textLines, fromLanguage, toLanguage, verbose)
@@ -124,14 +124,14 @@ def translate(myFile, fromLanguage, toLanguage, translateEngine, verbose):
             elif translateEngine == "test":
                 newLines = []
                 for textLine in textLines:
-                    textLine = filter(lambda x: x in string.printable, textLine)
+                    textLine = [x for x in textLine if x in string.printable]
                     newLines.append(textLine)
             else:
                 sys.exit()
                 
             for newLine in newLines:
                 if verbose:
-                    print "new - %s" % newLine
+                    print("new - %s" % newLine)
                 outLines.append(newLine)
                 
             lineNo = 0
@@ -139,18 +139,18 @@ def translate(myFile, fromLanguage, toLanguage, translateEngine, verbose):
         
         if inLine == "":
             if verbose:
-                print
+                print()
             outLines.append(inLine)
             stage = "linefeed"
         elif inLine.isdigit():
             if verbose:
-                print "num - %s" % inLine
+                print("num - %s" % inLine)
             outLines.append(inLine)
             if stage == "linefeed":
                 stage == "numbering"
         elif re.match("^[0-9:',.>'\- \]]*$", inLine):
             if verbose:
-                print "tc  - %s" % inLine
+                print("tc  - %s" % inLine)
             outLines.append(inLine)
             if stage == "numbering":
                 stage = "timecode"
@@ -164,24 +164,24 @@ def translate(myFile, fromLanguage, toLanguage, translateEngine, verbose):
     if continueWithProcess(newName, True, False, verbose):        
         targetFile = codecs.open(newName, "w", prefEncoding)
         if verbose:
-            print "--- Writing to %s" % newName
+            print("--- Writing to %s" % newName)
         for outLine in outLines:
             if verbose:
-                print outLine
+                print(outLine)
             targetFile.write("%s\n" % outLine)
         
         targetFile.close()
         
 def newFileName(myFile, translateEngine, toLanguage, verbose):
     if verbose:
-        print "--- Old file name: %s" % myFile
+        print("--- Old file name: %s" % myFile)
     extension = os.path.splitext(myFile)[1]
     newName = os.path.splitext(myFile)[0]
     if hasLangCode(myFile):
         newName = os.path.splitext(newName)[0]
     newName = "%s.%s.%s%s" % (newName, translateEngine, toLanguage, extension)
     if verbose:
-        print "--- New file name: %s" % newName
+        print("--- New file name: %s" % newName)
         
     return newName
     
@@ -200,18 +200,18 @@ def yandexXMLTranslate(inLines, fromLanguage, toLanguage, verbose):
     lineNo = 0            
     
     inText = inText.strip("#").lstrip(" ").rstrip(" ").replace(" ", "+")
-    inText = filter(lambda x: x in string.printable, inText)
+    inText = [x for x in inText if x in string.printable]
     
     if verbose:
-        print "--- inText - %s" % inText
+        print("--- inText - %s" % inText)
         
     requestUrl = "%s%s%s" % (yandexTranslateXML, ("%s-%s" % (fromLanguage, toLanguage)), "&text=%s" % inText)
     if verbose:
-        print "--- URL: %s" % requestUrl
+        print("--- URL: %s" % requestUrl)
 
-    yandexXML = urllib2.urlopen(requestUrl).read()
+    yandexXML = urllib.request.urlopen(requestUrl).read()
     if verbose:
-        print "--- Response:\n%s" % yandexXML
+        print("--- Response:\n%s" % yandexXML)
     xmlRoot = ET.fromstring(yandexXML)  # read xml
     
     for xmlChild in xmlRoot:
@@ -223,7 +223,7 @@ def yandexXMLTranslate(inLines, fromLanguage, toLanguage, verbose):
 
     if verbose:
         for outLine in outLines:
-            print "--- outText: %s" % outLine
+            print("--- outText: %s" % outLine)
     
     return outLines
 
@@ -234,27 +234,27 @@ def goslateTranslate(inLines, fromLanguage, toLanguage, verbose):
         trys = 0
         inLine = inLine.strip("#").lstrip(" ").rstrip(" ") 
         if verbose:
-            print "--- inText - %s" % inLine
+            print("--- inText - %s" % inLine)
         # outLine = gs.translate(inLine, toLanguage)
         # outLines.append(outLine)
         while True:
             trys += 1
             if trys > maxTrys:
-                print "*** Tried %s times\n    Giving up..."
+                print("*** Tried %s times\n    Giving up...")
                 outLines.append("*** Could not translate ***")
                 break
             try:
                 outLine = gs.translate(inLine, toLanguage)
             except:
-                print sys.exc_info()[0] 
-                print "*** Something went wrong\n    Trying again"
+                print(sys.exc_info()[0]) 
+                print("*** Something went wrong\n    Trying again")
             else:
                 outLines.append(outLine)
                 break         
         
     if verbose:
         for outLine in outLines:
-            print "--- outText: %s" % outLine
+            print("--- outText: %s" % outLine)
     
     return outLines
 
@@ -264,13 +264,13 @@ def msmtTranslate(inLines, fromLanguage, toLanguage, msToken, verbose):
     for inLine in inLines:
         inLine = inLine.strip("#").lstrip(" ").rstrip(" ")  # .replace(" ", "+")
         if verbose:
-            print "--- inText - %s" % inLine
+            print("--- inText - %s" % inLine)
         response = msmt.translate(msToken, inLine, toLanguage, fromLanguage)
         outLines.append(response)
         
     if verbose:
         for outLine in outLines:
-            print "--- outText: %s" % outLine
+            print("--- outText: %s" % outLine)
             
     sys.exit()
         
@@ -283,13 +283,13 @@ def msTranslate(inLines, fromLanguage, toLanguage, msT, verbose):
         inLine = inLine.strip("#").lstrip(" ").rstrip(" ")  # .replace(" ", "+")
         # inLine = filter(lambda x: x in string.printable, inLine)
         if verbose:
-            print "--- inText - %s" % inLine
+            print("--- inText - %s" % inLine)
         response = msT.translate(inLine, toLanguage, fromLanguage)
         outLines.append(response)
         
     if verbose:
         for outLine in outLines:
-            print "--- outText: %s" % outLine
+            print("--- outText: %s" % outLine)
         
     return outLines
 

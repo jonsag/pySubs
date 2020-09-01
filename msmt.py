@@ -22,29 +22,29 @@ def get_access_token(client_id, client_secret):
     as described in number 3, here: http://msdn.microsoft.com/en-us/library/hh454949.aspx
     """
  
-    data = urllib.urlencode({'client_id' : client_id,
+    data = urllib.parse.urlencode({'client_id' : client_id,
                              'client_secret' : client_secret,
                              'grant_type' : 'client_credentials',
                              'scope' : 'http://api.microsofttranslator.com'
                              })
  
     try:
-        request = urllib2.Request('https://datamarket.accesscontrol.windows.net/v2/OAuth2-13')
+        request = urllib.request.Request('https://datamarket.accesscontrol.windows.net/v2/OAuth2-13')
         request.add_data(data)
  
-        response = urllib2.urlopen(request)
+        response = urllib.request.urlopen(request)
         response_data = json.loads(response.read())
  
-        if response_data.has_key('access_token'):
+        if 'access_token' in response_data:
             return response_data['access_token']
  
-    except urllib2.URLError, e:
+    except urllib.error.URLError as e:
         if hasattr(e, 'reason'):
-            print datestring(), 'Could not connect to the server:', e.reason
+            print(datestring(), 'Could not connect to the server:', e.reason)
         elif hasattr(e, 'code'):
-            print datestring(), 'Server error: ', e.code
+            print(datestring(), 'Server error: ', e.code)
     except TypeError:
-        print datestring(), 'Bad data from server'
+        print(datestring(), 'Bad data from server')
  
 supported_languages = {  # as defined here: http://msdn.microsoft.com/en-us/library/hh456380.aspx
                        'ar' : ' Arabic',
@@ -92,7 +92,7 @@ def print_supported_languages():
     (used when a call to translate requests an unsupported code)"""
  
     codes = []
-    for k, v in supported_languages.items():
+    for k, v in list(supported_languages.items()):
         codes.append('\t'.join([k, '=', v]))
     return '\n'.join(codes)
  
@@ -113,32 +113,32 @@ def translate(access_token, text, to_lang, from_lang=None):
     """
  
     if not access_token:
-        print 'Sorry, the access token is invalid'
+        print('Sorry, the access token is invalid')
     else:
-        if to_lang not in supported_languages.keys():
-            print 'Sorry, the API cannot translate to', to_lang
-            print 'Please use one of these instead:'
-            print print_supported_languages()
+        if to_lang not in list(supported_languages.keys()):
+            print('Sorry, the API cannot translate to', to_lang)
+            print('Please use one of these instead:')
+            print(print_supported_languages())
         else:
             data = { 'text' : to_bytestring(text), 'to' : to_lang }
  
             if from_lang:
-                if from_lang not in supported_languages.keys():
-                    print 'Sorry, the API cannot translate from', from_lang
-                    print 'Please use one of these instead:'
-                    print print_supported_languages()
+                if from_lang not in list(supported_languages.keys()):
+                    print('Sorry, the API cannot translate from', from_lang)
+                    print('Please use one of these instead:')
+                    print(print_supported_languages())
                     return
                 else:
                     data['from'] = from_lang
  
             try:
-                request = urllib2.Request('http://api.microsofttranslator.com/v2/Http.svc/Translate?' + urllib.urlencode(data))
+                request = urllib.request.Request('http://api.microsofttranslator.com/v2/Http.svc/Translate?' + urllib.parse.urlencode(data))
                 request.add_header('Authorization', 'Bearer ' + access_token)
-                response = urllib2.urlopen(request)
+                response = urllib.request.urlopen(request)
                 return response.read()
             
-            except urllib2.URLError, e:
+            except urllib.error.URLError as e:
                 if hasattr(e, 'reason'):
-                    print datestring(), 'Could not connect to the server:', e.reason
+                    print(datestring(), 'Could not connect to the server:', e.reason)
                 elif hasattr(e, 'code'):
-                    print datestring(), 'Server error: ', e.code
+                    print(datestring(), 'Server error: ', e.code)

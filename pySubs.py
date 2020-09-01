@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
@@ -112,14 +112,14 @@ if searchPath:  # argument -p --path passed
     if not os.path.isdir(searchPath):  # not a valid path
         onError(4, "%s is not a valid path" % searchPath)
 else:
-    print "\nNo path given."
-    print "Using current dir %s" % searchPath
+    print("\nNo path given.")
+    print("Using current dir %s" % searchPath)
 
 if extension:  # argument -e --extension passed
     extension = ".%s" % extension.lstrip('.')  # remove leading . if any
 else:
-    print "\nNo extension given!"
-    print "Setting %s" % extension.lstrip('.')  # remove leading . if any
+    print("\nNo extension given!")
+    print("Setting %s" % extension.lstrip('.'))  # remove leading . if any
 
 
 
@@ -138,12 +138,12 @@ elif doFormat and not doLink and not getSubs and not checkCode and not doStatus 
 
 elif doLink and getSubs and not doStatus and not doFormat and not doRename and not doTranslate:  # get and link
     partGet(searchPath, recursive, getSubs, fileMask, verbose)
-    print "----------------------------------------------------------------"
+    print("----------------------------------------------------------------")
     partLink(recursive, searchPath, extension, fileMask, verbose)
 
 elif doFormat and doLink and not getSubs and not doStatus and not checkCode and not doRename and not doTranslate:  # format and link
     partFormat(searchPath, recursive, extension, keep, verbose)
-    print "----------------------------------------------------------------"
+    print("----------------------------------------------------------------")
     partLink(recursive, searchPath, extension, fileMask, verbose)
 
 elif checkCode and not doLink and not getSubs and not doStatus and not doFormat and not doRename and not doTranslate:  # check language codes manually

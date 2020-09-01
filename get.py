@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
@@ -15,26 +15,26 @@ def partGet(searchPath, recursive, getSubs, fileMask, verbose):  # search for an
 
     if videoFiles:
         for myFile in videoFiles:
-            print "\n%s" % myFile
+            print("\n%s" % myFile)
             if fileMask in os.path.basename(myFile):
                 subDownloads = hasSub(myFile, searchPath, subDownloads, getSubs, verbose)  # go ahead processing the video file
             else:
-                print "*** File name does not match the mask"
+                print("*** File name does not match the mask")
 
     if subDownloads:
-        print "\nDownloaded subtitles:"
+        print("\nDownloaded subtitles:")
         for lang in prefLangs:
             sub = subDownloads.count(lang)
-            print "%s - %s:  %d" % (lang, langName(lang).lower(), sub)
+            print("%s - %s:  %d" % (lang, langName(lang).lower(), sub))
 
-        print "\nMissing but not found:"
+        print("\nMissing but not found:")
         for lang in prefLangs:
             sub = subDownloads.count("%s - not found" % lang)
-            print "%s - %s:  %d" % (lang, langName(lang).lower(), sub)
+            print("%s - %s:  %d" % (lang, langName(lang).lower(), sub))
 
-        print "\nSubtitles present:"
+        print("\nSubtitles present:")
         for lang in prefLangs:
             sub = subDownloads.count("%s - present" % lang)
-            print "%s - %s:  %d" % (lang, langName(lang).lower(), sub)
+            print("%s - %s:  %d" % (lang, langName(lang).lower(), sub))
 
-    print
+    print()

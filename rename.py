@@ -1,8 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # Encoding: UTF-8
 
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 import xml.etree.ElementTree as ET
 
@@ -20,15 +20,15 @@ def partRename(searchPath, recursive, extension, renameVideo, renameSub, verbose
         subFiles = findSubFiles(searchPath, recursive, extension, subFiles, False, verbose)
         
     if videoFiles:
-        print "Videos found:"
+        print("Videos found:")
         for videoFile in videoFiles:
-            print videoFile
-        print
+            print(videoFile)
+        print()
     if subFiles:
-        print "Subtitles found:"
+        print("Subtitles found:")
         for subFile in subFiles:
-            print subFile
-        print
+            print(subFile)
+        print()
         
     # mirror = getTheTVdbMirror(verbose)
     # previousTime = getTheTVdbTime(verbose)
@@ -40,16 +40,16 @@ def getTheTVdbMirror(verbose):
     mirrorTypemask = ""
     
     try:
-        response = urllib2.urlopen(getMirrorXml, timeout=timeOut).read()  # get data from server
+        response = urllib.request.urlopen(getMirrorXml, timeout=timeOut).read()  # get data from server
         if verbose:
-            print "--- Got data"
-    except urllib2.URLError, e:
+            print("--- Got data")
+    except urllib.error.URLError as e:
         if verbose:
-            print "*** There was an error: %r" % e
-            print "*** Could not get data"
+            print("*** There was an error: %r" % e)
+            print("*** Could not get data")
     
     if verbose:
-        print response
+        print(response)
     
     xmlRoot = ET.fromstring(response)  # read xml
     
@@ -106,31 +106,31 @@ def getTheTVdbMirror(verbose):
                     mirrorTypemask = ""
             
     for line in mirrors:
-        print "\nId: %s\nPath: %s\nType mask: %s" % (line['id'], line['path'], line['typemask'])
+        print("\nId: %s\nPath: %s\nType mask: %s" % (line['id'], line['path'], line['typemask']))
         if line['xml']:
-            print "Has XML"
+            print("Has XML")
         if line['banner']:
-            print "Has banners"
+            print("Has banners")
         if line['zip']:
-            print "Has zip"
+            print("Has zip")
         
         useMirror = line['path']
         
-    print
+    print()
     return useMirror
         
 def getTheTVdbTime(verbose):
     try:
-        response = urllib2.urlopen(getTimeXML, timeout=timeOut).read()  # get data from server
+        response = urllib.request.urlopen(getTimeXML, timeout=timeOut).read()  # get data from server
         if verbose:
-            print "--- Got data"
-    except urllib2.URLError, e:
+            print("--- Got data")
+    except urllib.error.URLError as e:
         if verbose:
-            print "*** There was an error: %r" % e
-            print "*** Could not get data"
+            print("*** There was an error: %r" % e)
+            print("*** Could not get data")
     
     if verbose:
-        print response
+        print(response)
     
     xmlRoot = ET.fromstring(response)  # read xml
     
@@ -138,6 +138,6 @@ def getTheTVdbTime(verbose):
         if 'Time' in xmlChild.tag:
             previousTime = xmlChild.text
             
-    print "Server time: %s" % previousTime
+    print("Server time: %s" % previousTime)
     return previousTime
 

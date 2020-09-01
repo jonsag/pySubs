@@ -12,7 +12,7 @@ Requirements:
     * pycaption,							pip install pycaption  
     * subliminal,		python-subliminal,	pip install --upgrade subliminal  
     
-Register account at detectlanguage.com:
+Register account at detectlanguage.com
 ----------------------------------------------    
 Visit detectlanguage.com, and register an account  
 You can get one for free  
@@ -27,7 +27,7 @@ or https://gist.github.com/naglis/ee95a03d8f84d36fe2c3
 or copy and paste this to said file,  
 put it in your PATH and make it executable:  
 	
-	#!/usr/bin/env python3  
+	#!/usr/bin/env python33  
 	# -*- coding: utf-8 -*-  
 	# Encoding: UTF-8  
 	
